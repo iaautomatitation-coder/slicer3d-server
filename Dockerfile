@@ -7,9 +7,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y \
-    cura-engine \
+    prusa-slicer \
     && rm -rf /var/lib/apt/lists/* \
-    && CuraEngine --version || echo "installed"
+    && prusa-slicer --version || echo "installed"
 
 WORKDIR /app
 COPY package*.json ./
