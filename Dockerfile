@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
     curl wget nodejs npm git \
-    libglib2.0-0 libGL1 libglu1-mesa \
+    libglib2.0-0 libgl1 libglu1-mesa \
     && rm -rf /var/lib/apt/lists/*
 
 # Descargar PrusaSlicer AppImage y extraerlo (sin FUSE)
