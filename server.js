@@ -29,11 +29,11 @@ app.get('/', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-  // Check if OrcaSlicer is installed
-  exec('orcaslicer --version 2>&1 || echo "not_found"', (err, stdout) => {
+  // Check if CuraEngine is installed
+  exec('CuraEngine --version 2>&1 || echo "not_found"', (err, stdout) => {
     res.json({
       status: 'ok',
-      orcaslicer: stdout.includes('not_found') ? 'not installed' : stdout.trim(),
+      curaengine: stdout.includes('not_found') ? 'not installed' : stdout.trim(),
       uptime: process.uptime()
     });
   });
@@ -45,11 +45,11 @@ app.post('/slice', upload.single('file'), async (req, res) => {
     return res.status(400).json({ error: 'No STL file uploaded' });
   }
 
-  const profile = req.profile || 'bambu_a1_mini';
+  const profile = req.body?.profile || req.query?.profile || 'bambu_a1_mini';
   const stlPath = req.file.path;
   const outDir  = os.tmpdir();
   const gcodeOut = path.join(outDir, `${req.file.filename}.gcode`);
-  const profileFile = path.join(__dirname, 'profiles', `${profile}.ini`);
+  const profileFile = path.join(__dirname, 'profiles', `${profile}.json`);
 
   // Check profile exists
   if (!fs.existsSync(profileFile)) {
@@ -57,11 +57,12 @@ app.post('/slice', upload.single('file'), async (req, res) => {
     return res.status(400).json({ error: `Profile '${profile}' not found` });
   }
 
+  // CuraEngine CLI: slice -j <profile.json> -o <output.gcode> -l <input.stl>
   const cmd = [
-    'orcaslicer',
-    `--load "${profileFile}"`,
-    `--output "${gcodeOut}"`,
-    `"${stlPath}"`
+    'CuraEngine slice',
+    `-j "${profileFile}"`,
+    `-o "${gcodeOut}"`,
+    `-l "${stlPath}"`
   ].join(' ');
 
   exec(cmd, { timeout: 120000 }, (err, stdout, stderr) => {
@@ -100,38 +101,30 @@ function parseGcode(gcodeFile) {
   const content = fs.readFileSync(gcodeFile, 'utf8');
   const lines   = content.split('\n');
 
-  let grams     = null;
-  let time_min  = null;
+  let grams      = null;
+  let time_min   = null;
   let filament_m = null;
 
   for (const line of lines) {
-    // OrcaSlicer / PrusaSlicer format:
-    // ; filament used [g] = 36.81
-    if (line.includes('filament used [g]')) {
-      const m = line.match(/=\s*([\d.]+)/);
-      if (m) grams = parseFloat(m[1]);
+    // CuraEngine format:
+    // ;TIME:8945  (total print time in seconds)
+    if (line.startsWith(';TIME:')) {
+      const m = line.match(/;TIME:(\d+)/);
+      if (m) time_min = parseInt(m[1]) / 60;
     }
-    // ; filament used [mm] = 2180.50
-    if (line.includes('filament used [mm]')) {
-      const m = line.match(/=\s*([\d.]+)/);
-      if (m) filament_m = parseFloat(m[1]) / 1000;
+
+    // ;Filament used: 2.12345m
+    if (line.startsWith(';Filament used:')) {
+      const m = line.match(/;Filament used:\s*([\d.]+)m/);
+      if (m) filament_m = parseFloat(m[1]);
     }
-    // ; estimated printing time (normal mode) = 2h 29m 5s
-    if (line.includes('estimated printing time')) {
-      const h = line.match(/(\d+)h/);
-      const mi = line.match(/(\d+)m/);
-      const s  = line.match(/(\d+)s/);
-      const hours   = h  ? parseInt(h[1])  : 0;
-      const minutes = mi ? parseInt(mi[1]) : 0;
-      const seconds = s  ? parseInt(s[1])  : 0;
-      time_min = hours * 60 + minutes + seconds / 60;
-    }
-    // Bambu Studio format sometimes uses:
-    // ; total filament used [g] = 36.81
-    if (line.includes('total filament used [g]')) {
-      const m = line.match(/=\s*([\d.]+)/);
-      if (m) grams = parseFloat(m[1]);
-    }
+  }
+
+  // Calculate grams from filament length (1.75mm PLA, density 1.24 g/cm³)
+  if (filament_m !== null) {
+    const radius_cm  = 0.0875; // 1.75mm diameter / 2 → cm
+    const volume_cm3 = Math.PI * radius_cm * radius_cm * (filament_m * 100);
+    grams = parseFloat((volume_cm3 * 1.24).toFixed(2));
   }
 
   if (grams === null || time_min === null) {
