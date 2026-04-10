@@ -45,7 +45,7 @@ app.post('/slice', upload.single('file'), async (req, res) => {
     return res.status(400).json({ error: 'No STL file uploaded' });
   }
 
-  const profile = req.body?.profile || req.query?.profile || 'bambu_a1_mini';
+  const profile = (req.body && req.body.profile) || (req.query && req.query.profile) || 'bambu_a1_mini';
   const stlPath = req.file.path;
   const outDir  = os.tmpdir();
   const gcodeOut = path.join(outDir, `${req.file.filename}.gcode`);
