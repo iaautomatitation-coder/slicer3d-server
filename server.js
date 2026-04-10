@@ -12,58 +12,38 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Multer — temp storage for uploaded STL files
 const upload = multer({ dest: os.tmpdir() });
 
-// ─── Root ────────────────────────────────────────────────────────
 app.get('/', function(req, res) {
-  res.json({
-    status: 'ok',
-    service: 'Slicer3D API',
-    version: '1.1.0',
-    endpoints: {
-      slice: 'POST /slice  (multipart: file=STL, profile=bambu_a1_mini|ender3_se|prusa_mk4)',
-      health: 'GET /health'
-    }
-  });
+  res.json({ status: 'ok', service: 'Slicer3D API', version: '1.2.0' });
 });
 
-// ─── Health check ───────────────────────────────────────────────
 app.get('/health', function(req, res) {
-  exec('prusa-slicer --version 2>&1 || echo "not_found"', function(err, stdout) {
+  exec('slic3r --version 2>&1 || echo "not_found"', function(err, stdout) {
     res.json({
       status: 'ok',
-      prusaslicer: stdout.includes('not_found') ? 'not installed' : stdout.trim(),
+      slic3r: stdout.includes('not_found') ? 'not installed' : stdout.trim(),
       uptime: process.uptime()
     });
   });
 });
 
-// ─── Main slice endpoint ─────────────────────────────────────────
 app.post('/slice', upload.single('file'), function(req, res) {
   if (!req.file) {
     return res.status(400).json({ error: 'No STL file uploaded' });
   }
 
-  var profile = (req.body && req.body.profile) || (req.query && req.query.profile) || 'bambu_a1_mini';
+  var profile  = (req.body && req.body.profile) || (req.query && req.query.profile) || 'default';
   var stlPath  = req.file.path;
-  var outDir   = os.tmpdir();
-  var gcodeOut = path.join(outDir, req.file.filename + '.gcode');
+  var gcodeOut = path.join(os.tmpdir(), req.file.filename + '.gcode');
   var profileFile = path.join(__dirname, 'profiles', profile + '.ini');
 
-  if (!fs.existsSync(profileFile)) {
-    fs.unlinkSync(stlPath);
-    return res.status(400).json({ error: "Profile '" + profile + "' not found" });
+  var cmd;
+  if (fs.existsSync(profileFile)) {
+    cmd = 'slic3r --export-gcode --load "' + profileFile + '" -o "' + gcodeOut + '" "' + stlPath + '"';
+  } else {
+    cmd = 'slic3r --export-gcode -o "' + gcodeOut + '" "' + stlPath + '"';
   }
-
-  // PrusaSlicer CLI: --export-gcode --load <profile.ini> -o <output.gcode> <input.stl>
-  var cmd = [
-    'prusa-slicer',
-    '--export-gcode',
-    '--load "' + profileFile + '"',
-    '-o "' + gcodeOut + '"',
-    '"' + stlPath + '"'
-  ].join(' ');
 
   exec(cmd, { timeout: 120000 }, function(err, stdout, stderr) {
     try { fs.unlinkSync(stlPath); } catch(e) {}
@@ -71,22 +51,13 @@ app.post('/slice', upload.single('file'), function(req, res) {
     if (err) {
       console.error('Slice error:', stderr);
       try { fs.unlinkSync(gcodeOut); } catch(e) {}
-      return res.status(500).json({
-        error: 'Slice failed',
-        detail: stderr.substring(0, 500)
-      });
+      return res.status(500).json({ error: 'Slice failed', detail: stderr.substring(0, 500) });
     }
 
     try {
       var result = parseGcode(gcodeOut);
       fs.unlinkSync(gcodeOut);
-      res.json({
-        ok: true,
-        grams: result.grams,
-        time_min: result.time_min,
-        filament_m: result.filament_m,
-        profile: profile
-      });
+      res.json({ ok: true, grams: result.grams, time_min: result.time_min, filament_m: result.filament_m, profile: profile });
     } catch(parseErr) {
       try { fs.unlinkSync(gcodeOut); } catch(e) {}
       res.status(500).json({ error: 'Could not parse gcode', detail: parseErr.message });
@@ -94,24 +65,27 @@ app.post('/slice', upload.single('file'), function(req, res) {
   });
 });
 
-// ─── Parse gcode (PrusaSlicer / OrcaSlicer format) ───────────────
 function parseGcode(gcodeFile) {
   var content = fs.readFileSync(gcodeFile, 'utf8');
   var lines   = content.split('\n');
-
-  var grams      = null;
-  var time_min   = null;
-  var filament_m = null;
+  var grams = null, time_min = null, filament_m = null;
 
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i];
 
-    // ; filament used [g] = 36.81
+    // Slic3r: ; filament used = 2180.5mm (5.3cm3)
+    if (line.indexOf('; filament used =') !== -1) {
+      var mm = line.match(/([\d.]+)mm/);
+      var cm3 = line.match(/([\d.]+)cm3/);
+      if (mm) filament_m = parseFloat(mm[1]) / 1000;
+      if (cm3) grams = parseFloat((parseFloat(cm3[1]) * 1.24).toFixed(2));
+    }
+    // PrusaSlicer: ; filament used [g] = 36.81
     if (line.indexOf('filament used [g]') !== -1) {
       var m = line.match(/=\s*([\d.]+)/);
       if (m) grams = parseFloat(m[1]);
     }
-    // ; filament used [mm] = 12150.00
+    // PrusaSlicer: ; filament used [mm] = 2180.50
     if (line.indexOf('filament used [mm]') !== -1) {
       var m2 = line.match(/=\s*([\d.]+)/);
       if (m2) filament_m = parseFloat(m2[1]) / 1000;
@@ -121,16 +95,13 @@ function parseGcode(gcodeFile) {
       var h  = line.match(/(\d+)h/);
       var mi = line.match(/(\d+)m/);
       var s  = line.match(/(\d+)s/);
-      var hours   = h  ? parseInt(h[1])  : 0;
-      var minutes = mi ? parseInt(mi[1]) : 0;
-      var seconds = s  ? parseInt(s[1])  : 0;
-      time_min = hours * 60 + minutes + seconds / 60;
+      time_min = (h ? parseInt(h[1]) : 0) * 60 + (mi ? parseInt(mi[1]) : 0) + (s ? parseInt(s[1]) : 0) / 60;
     }
-    // ; total filament used [g] = 36.81  (Bambu format)
-    if (line.indexOf('total filament used [g]') !== -1) {
-      var m3 = line.match(/=\s*([\d.]+)/);
-      if (m3) grams = parseFloat(m3[1]);
-    }
+  }
+
+  if (grams === null && filament_m !== null) {
+    var r = 0.0875;
+    grams = parseFloat((Math.PI * r * r * filament_m * 100 * 1.24).toFixed(2));
   }
 
   if (grams === null || time_min === null) {
@@ -142,5 +113,4 @@ function parseGcode(gcodeFile) {
 
 app.listen(PORT, function() {
   console.log('Slicer3D API running on port ' + PORT);
-  console.log('Health: http://localhost:' + PORT + '/health');
 });
