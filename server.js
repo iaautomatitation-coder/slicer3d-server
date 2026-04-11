@@ -1,218 +1,226 @@
-const express = require('express');
-const multer  = require('multer');
-const { exec } = require('child_process');
-const fs   = require('fs');
-const path = require('path');
-const os   = require('os');
+var express = require('express');
+var multer = require('multer');
+var cors = require('cors');
+var fs = require('fs');
+var path = require('path');
+var exec = require('child_process').exec;
 
-const app  = express();
-const PORT = process.env.PORT || 3000;
+var app = express();
+var upload = multer({ dest: '/tmp/uploads/' });
 
-app.use(function(req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.sendStatus(200);
-  next();
+app.use(cors());
+app.use(express.json());
+
+// Servir archivos estáticos (cotizador)
+app.use(express.static(__dirname));
+
+app.get('/', function(req, res) {
+  res.json({ status: 'ok', version: '3.0.0', engine: 'PrusaSlicer' });
 });
 
-app.use(express.json());
-const upload = multer({ dest: os.tmpdir(), limits: { fileSize: 20 * 1024 * 1024 } });
-
-app.get('/', function(req, res) { res.json({ status: 'ok', version: '2.0.0' }); });
-
 app.get('/health', function(req, res) {
-  exec('slic3r --version 2>&1 || echo "not_found"', function(err, stdout) {
-    res.json({ status: 'ok', slic3r: stdout.includes('not_found') ? 'not installed' : stdout.trim(), uptime: process.uptime() });
+  exec('prusa-slicer --version 2>&1 || echo "not_found"', function(err, stdout) {
+    res.json({ 
+      status: 'ok', 
+      slicer: stdout.includes('not_found') ? 'not installed' : stdout.trim().split('\n')[0], 
+      uptime: process.uptime(),
+      version: '3.0.0'
+    });
   });
 });
 
 app.post('/slice', upload.single('file'), function(req, res) {
-  if (!req.file) return res.status(400).json({ error: 'No STL file uploaded' });
-
-  var tmpPath   = req.file.path;
-  var stlPath   = tmpPath + '.stl';
-  var gcodePath = tmpPath + '.gcode';
-
-  try { fs.renameSync(tmpPath, stlPath); } catch(e) {
-    return res.status(500).json({ error: 'rename failed', detail: e.message });
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
   }
 
+  var stlPath = req.file.path;
+  var gcodePath = stlPath + '.gcode';
+
+  // Obtener parámetros del request (con defaults)
+  var params = {
+    layer_height: req.body.layer_height || '0.2',
+    fill_density: req.body.fill_density || '15',
+    perimeters: req.body.perimeters || '3',
+    nozzle_diameter: req.body.nozzle_diameter || '0.4',
+    filament_diameter: req.body.filament_diameter || '1.75',
+    temperature: req.body.temperature || '220',
+    bed_temperature: req.body.bed_temperature || '60',
+    // Velocidades
+    perimeter_speed: req.body.perimeter_speed || '60',
+    infill_speed: req.body.infill_speed || '80',
+    travel_speed: req.body.travel_speed || '150',
+    first_layer_speed: req.body.first_layer_speed || '20',
+    external_perimeter_speed: req.body.external_perimeter_speed || '40',
+    solid_infill_speed: req.body.solid_infill_speed || '60',
+    // Capas
+    top_solid_layers: req.body.top_solid_layers || '4',
+    bottom_solid_layers: req.body.bottom_solid_layers || '4',
+    // Extras
+    ironing: req.body.ironing || '0',
+    support_material: req.body.support_material || 'none'
+  };
+
+  console.log('=== SLICE REQUEST ===');
+  console.log('File:', req.file.originalname);
+  console.log('Params:', JSON.stringify(params, null, 2));
+
+  // Construir comando PrusaSlicer
   var cmd = 'prusa-slicer --export-gcode'
-    + ' --layer-height 0.2'
-    + ' --fill-density 15%'
-    + ' --perimeters 3'
-    + ' --nozzle-diameter 0.4'
-    + ' --filament-diameter 1.75'
-    + ' --temperature 220'
-    + ' --bed-temperature 60'
-    + ' --output "' + gcodePath + '"'
-    + ' "' + stlPath + '"';
+    + ' --layer-height ' + params.layer_height
+    + ' --fill-density ' + params.fill_density + '%'
+    + ' --perimeters ' + params.perimeters
+    + ' --nozzle-diameter ' + params.nozzle_diameter
+    + ' --filament-diameter ' + params.filament_diameter
+    + ' --temperature ' + params.temperature
+    + ' --bed-temperature ' + params.bed_temperature
+    // Velocidades (PrusaSlicer usa mm/s directamente)
+    + ' --perimeter-speed ' + params.perimeter_speed
+    + ' --infill-speed ' + params.infill_speed
+    + ' --travel-speed ' + params.travel_speed
+    + ' --first-layer-speed ' + params.first_layer_speed
+    + ' --external-perimeter-speed ' + params.external_perimeter_speed
+    + ' --solid-infill-speed ' + params.solid_infill_speed
+    // Capas sólidas
+    + ' --top-solid-layers ' + params.top_solid_layers
+    + ' --bottom-solid-layers ' + params.bottom_solid_layers;
+
+  // Agregar ironing si está activo
+  if (params.ironing === '1') {
+    cmd += ' --ironing';
+  }
+
+  // Agregar soportes si están activos
+  if (params.support_material === 'buildplate') {
+    cmd += ' --support-material --support-material-buildplate-only';
+  } else if (params.support_material === 'everywhere') {
+    cmd += ' --support-material';
+  }
+
+  // Output y archivo de entrada
+  cmd += ' --output "' + gcodePath + '"';
+  cmd += ' "' + stlPath + '"';
 
   console.log('CMD:', cmd);
 
   exec(cmd, { timeout: 300000 }, function(err, stdout, stderr) {
+    // Limpiar STL
     try { fs.unlinkSync(stlPath); } catch(e) {}
 
     if (err) {
-      console.error('STDERR:', stderr);
-      console.error('STDOUT:', stdout);
+      console.log('STDERR:', stderr);
       try { fs.unlinkSync(gcodePath); } catch(e) {}
-      return res.status(500).json({ error: 'Slice failed', detail: (stderr||stdout||'unknown').substring(0,800) });
+      return res.status(500).json({ error: 'Slice failed', detail: stderr || err.message });
     }
 
-    if (!fs.existsSync(gcodePath)) {
-      return res.status(500).json({ error: 'No gcode generated', stdout: stdout, stderr: stderr });
-    }
-
+    // Leer y parsear gcode
+    var gcode;
     try {
-      var result = parseGcode(gcodePath);
-      try { fs.unlinkSync(gcodePath); } catch(e) {}
-      res.json({ ok: true, grams: result.grams, time_min: result.time_min, filament_m: result.filament_m });
+      gcode = fs.readFileSync(gcodePath, 'utf8');
     } catch(e) {
-      try { fs.unlinkSync(gcodePath); } catch(x) {}
-      res.status(500).json({ error: 'Parse failed', detail: e.message });
+      return res.status(500).json({ error: 'Gcode read failed', detail: e.message });
     }
+
+    // Limpiar gcode
+    try { fs.unlinkSync(gcodePath); } catch(e) {}
+
+    // Parsear resultados
+    var result = parseGcode(gcode);
+    
+    console.log('=== RESULT ===');
+    console.log('Grams:', result.grams, 'Time:', result.time_min, 'min', 'Filament:', result.filament_m, 'm');
+    
+    res.json({
+      ok: true,
+      grams: result.grams,
+      time_min: result.time_min,
+      filament_m: result.filament_m
+    });
   });
 });
 
-function parseGcode(f) {
-  var content = fs.readFileSync(f, 'utf8');
-  var lines = content.split('\n');
-  
-  console.log('=== PARSER v2.0 ===');
-  console.log('Total lines:', lines.length);
-
-  var comments = [];
-  for (var i = 0; i < lines.length; i++) {
-    if (lines[i].trim().indexOf(';') === 0) {
-      comments.push(lines[i]);
-    }
-  }
-  
-  console.log('=== GCODE COMMENTS (last 40) ===');
-  var lastComments = comments.slice(-40);
-  for (var j = 0; j < lastComments.length; j++) {
-    console.log(lastComments[j]);
-  }
-  console.log('=== END COMMENTS ===');
-
+function parseGcode(gcode) {
+  var lines = gcode.split('\n');
   var filament_mm = null;
   var filament_cm3 = null;
   var filament_g = null;
-  var time_seconds = null;
+  var time_min = null;
 
-  for (var k = 0; k < comments.length; k++) {
-    var line = comments[k];
+  // Buscar en comentarios del gcode
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    
+    // PrusaSlicer: ; filament used [mm] = 3687.2
+    var matchMM = line.match(/;\s*filament used \[mm\]\s*=\s*([\d.]+)/i);
+    if (matchMM) {
+      filament_mm = parseFloat(matchMM[1]);
+      console.log('[MATCH] PrusaSlicer mm:', filament_mm);
+    }
 
-    var match = line.match(/;\s*filament\s+used\s*=\s*([\d.]+)\s*mm\s*\(([\d.]+)\s*cm3\)/i);
-    if (match) {
-      filament_mm = parseFloat(match[1]);
-      filament_cm3 = parseFloat(match[2]);
+    // PrusaSlicer: ; filament used [cm3] = 8.9
+    var matchCM3 = line.match(/;\s*filament used \[cm3\]\s*=\s*([\d.]+)/i);
+    if (matchCM3) {
+      filament_cm3 = parseFloat(matchCM3[1]);
+      console.log('[MATCH] PrusaSlicer cm3:', filament_cm3);
+    }
+
+    // PrusaSlicer: ; filament used [g] = 11.1
+    var matchG = line.match(/;\s*filament used \[g\]\s*=\s*([\d.]+)/i);
+    if (matchG) {
+      filament_g = parseFloat(matchG[1]);
+      console.log('[MATCH] PrusaSlicer g:', filament_g);
+    }
+
+    // PrusaSlicer: ; estimated printing time (normal mode) = 1h 7m 23s
+    var matchTime = line.match(/;\s*estimated printing time.*?=\s*(.+)/i);
+    if (matchTime) {
+      time_min = parseTimeString(matchTime[1]);
+      console.log('[MATCH] PrusaSlicer time:', matchTime[1], '->', time_min, 'min');
+    }
+
+    // Formato antiguo slic3r: ; filament used = 3687.2mm (8.9cm3)
+    var matchOld = line.match(/;\s*filament used\s*=\s*([\d.]+)mm\s*\(([\d.]+)cm3\)/i);
+    if (matchOld) {
+      filament_mm = parseFloat(matchOld[1]);
+      filament_cm3 = parseFloat(matchOld[2]);
       console.log('[MATCH] slic3r classic:', filament_mm + 'mm,', filament_cm3 + 'cm3');
     }
-    
-    match = line.match(/;\s*filament\s+used\s*\[mm\]\s*=\s*([\d.]+)/i);
-    if (match && filament_mm === null) {
-      filament_mm = parseFloat(match[1]);
-      console.log('[MATCH] prusaslicer mm:', filament_mm + 'mm');
-    }
-    
-    match = line.match(/;\s*filament\s+used\s*\[cm3\]\s*=\s*([\d.]+)/i);
-    if (match && filament_cm3 === null) {
-      filament_cm3 = parseFloat(match[1]);
-      console.log('[MATCH] prusaslicer cm3:', filament_cm3 + 'cm3');
-    }
-    
-    match = line.match(/;\s*filament\s+used\s*\[g\]\s*=\s*([\d.]+)/i);
-    if (match) {
-      filament_g = parseFloat(match[1]);
-      console.log('[MATCH] prusaslicer g:', filament_g + 'g');
-    }
-    
-    match = line.match(/;\s*filament\s+used\s*=\s*([\d.]+)\s*mm(?!\s*\()/i);
-    if (match && filament_mm === null) {
-      filament_mm = parseFloat(match[1]);
-      console.log('[MATCH] generic mm:', filament_mm + 'mm');
-    }
-    
-    match = line.match(/;\s*Filament\s+used:\s*([\d.]+)\s*m/i);
-    if (match && filament_mm === null) {
-      filament_mm = parseFloat(match[1]) * 1000;
-      console.log('[MATCH] cura m:', filament_mm + 'mm');
-    }
-
-    if (time_seconds === null) {
-      match = line.match(/;\s*estimated\s+printing\s+time\s*\([^)]*\)\s*=\s*(.+)/i);
-      if (match) {
-        time_seconds = parseTimeStr(match[1]);
-        if (time_seconds) console.log('[MATCH] time with mode:', time_seconds + 's');
-      }
-      
-      if (time_seconds === null) {
-        match = line.match(/;\s*estimated\s+printing\s+time\s*=\s*(.+)/i);
-        if (match) {
-          time_seconds = parseTimeStr(match[1]);
-          if (time_seconds) console.log('[MATCH] time simple:', time_seconds + 's');
-        }
-      }
-      
-      match = line.match(/;\s*TIME:\s*(\d+)/i);
-      if (match && time_seconds === null) {
-        time_seconds = parseInt(match[1]);
-        console.log('[MATCH] cura time:', time_seconds + 's');
-      }
-    }
   }
 
-  if (filament_cm3 !== null && filament_g === null) {
-    filament_g = filament_cm3 * 1.24;
-    console.log('[CALC] g from cm3:', filament_g.toFixed(2) + 'g');
-  }
-  
-  if (filament_mm !== null && filament_g === null) {
-    var r = 0.0875;
-    var length_cm = filament_mm / 10;
-    var volume_cm3 = Math.PI * r * r * length_cm;
-    filament_g = volume_cm3 * 1.24;
-    console.log('[CALC] g from mm:', filament_g.toFixed(2) + 'g');
+  // Calcular gramos si no viene directo
+  var grams = filament_g;
+  if (!grams && filament_cm3) {
+    grams = filament_cm3 * 1.24; // PLA density
+    console.log('[CALC] g from cm3:', grams);
   }
 
-  var filament_m = filament_mm !== null ? filament_mm / 1000 : null;
-  var time_min = time_seconds !== null ? time_seconds / 60 : null;
-
-  console.log('=== FINAL RESULT ===');
-  console.log('grams:', filament_g, 'time_min:', time_min, 'filament_m:', filament_m);
-
-  if (filament_g === null) {
-    console.log('ERROR: No se encontro filamento en el gcode');
-    throw new Error('Parse failed: filament not found. Lines: ' + lines.length);
-  }
+  // Convertir mm a metros
+  var filament_m = filament_mm ? filament_mm / 1000 : null;
 
   return {
-    grams: parseFloat(filament_g.toFixed(2)),
-    time_min: time_min !== null ? Math.round(time_min) : null,
-    filament_m: filament_m !== null ? parseFloat(filament_m.toFixed(2)) : null
+    grams: grams ? Math.round(grams * 100) / 100 : null,
+    time_min: time_min,
+    filament_m: filament_m ? Math.round(filament_m * 100) / 100 : null
   };
 }
 
-function parseTimeStr(str) {
-  if (!str) return null;
-  var total = 0;
+function parseTimeString(timeStr) {
+  // Parsear formatos como "1h 7m 23s", "45m 30s", "2h 30m", etc.
+  var hours = 0, minutes = 0, seconds = 0;
   
-  var d = str.match(/(\d+)\s*d/i);
-  if (d) total += parseInt(d[1]) * 86400;
+  var hMatch = timeStr.match(/(\d+)\s*h/i);
+  var mMatch = timeStr.match(/(\d+)\s*m/i);
+  var sMatch = timeStr.match(/(\d+)\s*s/i);
   
-  var h = str.match(/(\d+)\s*h/i);
-  if (h) total += parseInt(h[1]) * 3600;
+  if (hMatch) hours = parseInt(hMatch[1]);
+  if (mMatch) minutes = parseInt(mMatch[1]);
+  if (sMatch) seconds = parseInt(sMatch[1]);
   
-  var m = str.match(/(\d+)\s*m(?!s)/i);
-  if (m) total += parseInt(m[1]) * 60;
-  
-  var s = str.match(/(\d+)\s*s/i);
-  if (s) total += parseInt(s[1]);
-  
-  return total > 0 ? total : null;
+  return Math.round(hours * 60 + minutes + seconds / 60);
 }
 
-app.listen(PORT, function() { console.log('Slicer3D v2.0.0 on port ' + PORT); });
+var PORT = process.env.PORT || 3000;
+app.listen(PORT, function() {
+  console.log('Slicer server v3.0.0 running on port ' + PORT);
+  console.log('Engine: PrusaSlicer with dynamic parameters');
+});

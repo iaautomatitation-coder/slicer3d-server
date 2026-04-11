@@ -13,10 +13,7 @@
             color: #fff;
             padding: 20px;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
+        .container { max-width: 650px; margin: 0 auto; }
         h1 {
             text-align: center;
             margin-bottom: 10px;
@@ -25,12 +22,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .subtitle {
-            text-align: center;
-            color: #888;
-            margin-bottom: 30px;
-            font-size: 0.9rem;
-        }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 0.9rem; }
         .card {
             background: rgba(255,255,255,0.05);
             border-radius: 16px;
@@ -38,6 +30,7 @@
             margin-bottom: 20px;
             border: 1px solid rgba(255,255,255,0.1);
         }
+        .card-title { font-size: 1rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
         .upload-zone {
             border: 2px dashed rgba(0,212,255,0.4);
             border-radius: 12px;
@@ -46,29 +39,85 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        .upload-zone:hover {
-            border-color: #00d4ff;
-            background: rgba(0,212,255,0.05);
-        }
-        .upload-zone.dragover {
-            border-color: #00ff88;
-            background: rgba(0,255,136,0.1);
-        }
-        .upload-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
-        }
+        .upload-zone:hover { border-color: #00d4ff; background: rgba(0,212,255,0.05); }
+        .upload-zone.dragover { border-color: #00ff88; background: rgba(0,255,136,0.1); }
+        .upload-zone.has-file { border-color: #00ff88; border-style: solid; }
+        .upload-icon { font-size: 48px; margin-bottom: 10px; }
         input[type="file"] { display: none; }
-        .config-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        
+        .printer-select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+        .printer-select option { background: #1a1a2e; color: #fff; }
+        .printer-specs {
+            font-size: 0.75rem;
+            color: #00d4ff;
+            text-align: center;
             margin-bottom: 16px;
+            padding: 8px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 8px;
         }
-        .config-row label {
+        
+        .params-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .params-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .param-item {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .param-item.full-width { grid-column: span 2; }
+        .param-label { font-size: 0.75rem; color: #888; margin-bottom: 6px; }
+        .param-value { display: flex; align-items: center; gap: 6px; }
+        .param-value input, .param-value select {
+            flex: 1;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(0,0,0,0.3);
+            color: #fff;
             font-size: 0.9rem;
-            color: #aaa;
+            text-align: center;
         }
+        .param-value input:focus, .param-value select:focus { outline: none; border-color: #00d4ff; }
+        .param-unit { font-size: 0.75rem; color: #666; min-width: 30px; }
+        
+        .section-label {
+            font-size: 0.8rem;
+            color: #00d4ff;
+            margin: 16px 0 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(0,212,255,0.2);
+        }
+        
+        .toggle-advanced {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding: 10px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #00d4ff;
+            transition: all 0.3s;
+        }
+        .toggle-advanced:hover { background: rgba(0,212,255,0.2); }
+        .advanced-params { display: none; margin-top: 16px; }
+        .advanced-params.show { display: block; }
+        
+        .config-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .config-row label { font-size: 0.9rem; color: #aaa; }
         .config-row input {
             width: 100px;
             padding: 8px 12px;
@@ -78,6 +127,7 @@
             color: #fff;
             text-align: right;
         }
+        
         .result-box {
             display: none;
             background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,255,136,0.1));
@@ -94,18 +144,11 @@
         .result-row:last-child { border: none; }
         .result-label { color: #aaa; }
         .result-value { font-weight: 600; }
-        .result-value.highlight {
-            font-size: 1.5rem;
-            color: #00ff88;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            display: none;
-        }
+        .result-value.highlight { font-size: 1.5rem; color: #00ff88; }
+        
+        .loading { text-align: center; padding: 20px; display: none; }
         .spinner {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             border: 3px solid rgba(0,212,255,0.2);
             border-top-color: #00d4ff;
             border-radius: 50%;
@@ -121,19 +164,100 @@
             color: #ff6b6b;
             display: none;
         }
-        .filename {
-            margin-top: 10px;
-            font-size: 0.85rem;
-            color: #00d4ff;
-        }
-        .server-status {
-            text-align: center;
-            font-size: 0.75rem;
-            color: #666;
-            margin-top: 20px;
-        }
+        .filename { margin-top: 10px; font-size: 0.85rem; color: #00d4ff; }
+        .server-status { text-align: center; font-size: 0.75rem; color: #666; margin-top: 20px; }
         .server-status.online { color: #00ff88; }
         .server-status.offline { color: #ff6b6b; }
+        .printer-badge {
+            display: inline-block;
+            background: rgba(0,212,255,0.2);
+            color: #00d4ff;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-left: 8px;
+        }
+        
+        .toggle-container { display: flex; align-items: center; justify-content: space-between; }
+        .toggle-switch { position: relative; width: 50px; height: 26px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255,255,255,0.1);
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px; width: 20px;
+            left: 3px; bottom: 3px;
+            background-color: #666;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        .toggle-switch input:checked + .toggle-slider { background-color: rgba(0,255,136,0.3); }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(24px); background-color: #00ff88; }
+        .toggle-label { font-size: 0.9rem; color: #ccc; }
+        .toggle-hint { font-size: 0.7rem; color: #666; margin-top: 4px; }
+
+        /* Botón Recotizar */
+        .btn-recotizar {
+            display: none;
+            width: 100%;
+            padding: 16px;
+            margin-top: 16px;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            border: none;
+            border-radius: 12px;
+            color: #1a1a2e;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-recotizar:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 20px rgba(0,212,255,0.4);
+        }
+        .btn-recotizar.show { display: block; }
+
+        /* Indicador de cambios */
+        .changes-indicator {
+            display: none;
+            text-align: center;
+            padding: 8px;
+            background: rgba(255,165,0,0.2);
+            border: 1px solid rgba(255,165,0,0.4);
+            border-radius: 8px;
+            color: #ffa500;
+            font-size: 0.85rem;
+            margin-top: 12px;
+        }
+        .changes-indicator.show { display: block; }
+
+        /* Saved indicator */
+        .saved-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,255,136,0.9);
+            color: #1a1a2e;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+        .saved-indicator.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -142,9 +266,192 @@
         <p class="subtitle">Sube tu archivo STL y obtén cotización instantánea</p>
 
         <div class="card">
+            <h3 class="card-title">🖨️ Impresora</h3>
+            <select class="printer-select" id="printerSelect" onchange="onPrinterChange()">
+                <option value="bambu_a1_mini">Bambu Lab A1 Mini</option>
+                <option value="bambu_a1">Bambu Lab A1</option>
+                <option value="bambu_p1s">Bambu Lab P1S</option>
+                <option value="bambu_x1c">Bambu Lab X1 Carbon</option>
+                <option value="ender3">Creality Ender 3</option>
+                <option value="ender3_v2">Creality Ender 3 V2</option>
+                <option value="ender3_s1">Creality Ender 3 S1</option>
+                <option value="prusa_mk3s">Prusa MK3S+</option>
+                <option value="prusa_mk4">Prusa MK4</option>
+                <option value="prusa_mini">Prusa Mini+</option>
+                <option value="artillery_x2">Artillery Sidewinder X2</option>
+                <option value="custom">⚙️ Personalizada</option>
+            </select>
+            <div class="printer-specs" id="printerSpecs">🚀 Velocidad: 200 mm/s | Alta aceleración</div>
+
+            <div class="params-grid">
+                <div class="param-item">
+                    <div class="param-label">Altura de capa</div>
+                    <div class="param-value">
+                        <select id="layerHeight" onchange="onParamChange()">
+                            <option value="0.08">0.08 (Ultra)</option>
+                            <option value="0.12">0.12 (Detalle)</option>
+                            <option value="0.16">0.16 (Calidad)</option>
+                            <option value="0.20" selected>0.20 (Normal)</option>
+                            <option value="0.24">0.24 (Rápido)</option>
+                            <option value="0.28">0.28 (Borrador)</option>
+                        </select>
+                        <span class="param-unit">mm</span>
+                    </div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">Relleno (Infill)</div>
+                    <div class="param-value">
+                        <input type="number" id="fillDensity" value="15" min="0" max="100" onchange="onParamChange()">
+                        <span class="param-unit">%</span>
+                    </div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">Perímetros</div>
+                    <div class="param-value">
+                        <input type="number" id="perimeters" value="3" min="1" max="10" onchange="onParamChange()">
+                        <span class="param-unit">líneas</span>
+                    </div>
+                </div>
+                <div class="param-item">
+                    <div class="param-label">Diámetro nozzle</div>
+                    <div class="param-value">
+                        <select id="nozzleDiameter" onchange="onParamChange()">
+                            <option value="0.2">0.2</option>
+                            <option value="0.4" selected>0.4</option>
+                            <option value="0.6">0.6</option>
+                            <option value="0.8">0.8</option>
+                        </select>
+                        <span class="param-unit">mm</span>
+                    </div>
+                </div>
+                
+                <div class="param-item full-width">
+                    <div class="toggle-container">
+                        <div>
+                            <div class="toggle-label">✨ Alisado (Ironing)</div>
+                            <div class="toggle-hint">Superficies superiores más lisas, +15-20% tiempo</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="ironing" onchange="onParamChange()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="toggle-advanced" onclick="toggleAdvanced()">
+                <span id="advancedIcon">▶</span> Parámetros avanzados (velocidades, temperaturas)
+            </div>
+
+            <div class="advanced-params" id="advancedParams">
+                <div class="section-label">🚀 Velocidades</div>
+                <div class="params-grid-3">
+                    <div class="param-item">
+                        <div class="param-label">Perímetros</div>
+                        <div class="param-value">
+                            <input type="number" id="perimeterSpeed" value="200" min="10" max="500" onchange="onParamChange()">
+                            <span class="param-unit">mm/s</span>
+                        </div>
+                    </div>
+                    <div class="param-item">
+                        <div class="param-label">Relleno</div>
+                        <div class="param-value">
+                            <input type="number" id="infillSpeed" value="250" min="10" max="500" onchange="onParamChange()">
+                            <span class="param-unit">mm/s</span>
+                        </div>
+                    </div>
+                    <div class="param-item">
+                        <div class="param-label">Viaje</div>
+                        <div class="param-value">
+                            <input type="number" id="travelSpeed" value="300" min="50" max="500" onchange="onParamChange()">
+                            <span class="param-unit">mm/s</span>
+                        </div>
+                    </div>
+                    <div class="param-item">
+                        <div class="param-label">Primera capa</div>
+                        <div class="param-value">
+                            <input type="number" id="firstLayerSpeed" value="50" min="10" max="100" onchange="onParamChange()">
+                            <span class="param-unit">mm/s</span>
+                        </div>
+                    </div>
+                    <div class="param-item">
+                        <div class="param-label">Perím. externos</div>
+                        <div class="param-value">
+                            <input type="number" id="externalPerimeterSpeed" value="150" min="10" max="300" onchange="onParamChange()">
+                            <span class="param-unit">mm/s</span>
+                        </div>
+                    </div>
+                    <div class="param-item">
+                        <div class="param-label">Capas sólidas</div>
+                        <div class="param-value">
+                            <input type="number" id="solidInfillSpeed" value="200" min="10" max="400" onchange="onParamChange()">
+                            <span class="param-unit">mm/s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-label">🌡️ Temperaturas y capas</div>
+                <div class="params-grid">
+                    <div class="param-item">
+                        <div class="param-label">Temperatura nozzle</div>
+                        <div class="param-value">
+                            <input type="number" id="temperature" value="220" min="180" max="300" onchange="onParamChange()">
+                            <span class="param-unit">°C</span>
+                        </div>
+                    </div>
+                    <div class="param-item">
+                        <div class="param-label">Temperatura cama</div>
+                        <div class="param-value">
+                            <input type="number" id="bedTemp" value="60" min="0" max="120" onchange="onParamChange()">
+                            <span class="param-unit">°C</span>
+                        </div>
+                    </div>
+                    <div class="param-item">
+                        <div class="param-label">Capas superiores</div>
+                        <div class="param-value">
+                            <input type="number" id="topLayers" value="4" min="1" max="20" onchange="onParamChange()">
+                            <span class="param-unit">capas</span>
+                        </div>
+                    </div>
+                    <div class="param-item">
+                        <div class="param-label">Capas inferiores</div>
+                        <div class="param-value">
+                            <input type="number" id="bottomLayers" value="4" min="1" max="20" onchange="onParamChange()">
+                            <span class="param-unit">capas</span>
+                        </div>
+                    </div>
+                    <div class="param-item">
+                        <div class="param-label">Diámetro filamento</div>
+                        <div class="param-value">
+                            <select id="filamentDiameter" onchange="onParamChange()">
+                                <option value="1.75" selected>1.75</option>
+                                <option value="2.85">2.85</option>
+                            </select>
+                            <span class="param-unit">mm</span>
+                        </div>
+                    </div>
+                    <div class="param-item">
+                        <div class="param-label">Soportes</div>
+                        <div class="param-value">
+                            <select id="supports" onchange="onParamChange()">
+                                <option value="none" selected>Sin soportes</option>
+                                <option value="buildplate">Solo cama</option>
+                                <option value="everywhere">En todas partes</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="changes-indicator" id="changesIndicator">
+                ⚠️ Configuración modificada - Recotiza para ver el nuevo precio
+            </div>
+        </div>
+
+        <div class="card">
             <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
                 <div class="upload-icon">📦</div>
-                <p>Arrastra tu archivo STL aquí</p>
+                <p id="uploadText">Arrastra tu archivo STL aquí</p>
                 <p style="color:#666; font-size:0.8rem; margin-top:8px;">o haz clic para seleccionar</p>
                 <div class="filename" id="filename"></div>
             </div>
@@ -152,30 +459,35 @@
         </div>
 
         <div class="card">
-            <h3 style="margin-bottom:16px; font-size:1rem;">⚙️ Configuración</h3>
+            <h3 class="card-title">💰 Costos</h3>
             <div class="config-row">
                 <label>Costo filamento ($/kg)</label>
-                <input type="number" id="costFilament" value="400">
+                <input type="number" id="costFilament" value="400" onchange="onCostChange()">
             </div>
             <div class="config-row">
                 <label>Tarifa máquina ($/hr)</label>
-                <input type="number" id="costMachine" value="60">
+                <input type="number" id="costMachine" value="60" onchange="onCostChange()">
             </div>
             <div class="config-row">
                 <label>Margen (%)</label>
-                <input type="number" id="margin" value="40">
+                <input type="number" id="margin" value="40" onchange="onCostChange()">
             </div>
         </div>
+
+        <button class="btn-recotizar" id="btnRecotizar" onclick="recotizar()">
+            🔄 Recotizar con nuevos parámetros
+        </button>
 
         <div class="loading" id="loading">
             <div class="spinner"></div>
             <p>Analizando con PrusaSlicer...</p>
+            <p style="font-size:0.8rem; color:#666; margin-top:8px;" id="loadingPrinter"></p>
         </div>
 
         <div class="error" id="error"></div>
 
         <div class="result-box" id="results">
-            <h3 style="margin-bottom:16px;">📊 Resultado</h3>
+            <h3 style="margin-bottom:16px;">📊 Resultado <span class="printer-badge" id="resultPrinter"></span></h3>
             <div class="result-row">
                 <span class="result-label">Filamento</span>
                 <span class="result-value" id="resGrams">--</span>
@@ -183,6 +495,10 @@
             <div class="result-row">
                 <span class="result-label">Tiempo estimado</span>
                 <span class="result-value" id="resTime">--</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Configuración</span>
+                <span class="result-value" id="resConfig">--</span>
             </div>
             <div class="result-row">
                 <span class="result-label">Costo material</span>
@@ -209,9 +525,264 @@
         <div class="server-status" id="serverStatus">Verificando servidor...</div>
     </div>
 
+    <div class="saved-indicator" id="savedIndicator">✓ Configuración guardada</div>
+
     <script>
         const API = 'https://slicer3d-server-production.up.railway.app';
+        let currentFile = null;
+        let hasQuoted = false;
+        let paramsChanged = false;
         
+        const PRINTER_PROFILES = {
+            bambu_a1_mini: {
+                name: 'Bambu Lab A1 Mini',
+                desc: '🚀 200-300 mm/s | Alta aceleración | Input Shaping',
+                layerHeight: '0.20', fillDensity: 15, perimeters: 3, nozzleDiameter: '0.4',
+                temperature: 220, bedTemp: 60, filamentDiameter: '1.75',
+                topLayers: 4, bottomLayers: 4,
+                perimeterSpeed: 200, infillSpeed: 250, travelSpeed: 300,
+                firstLayerSpeed: 50, externalPerimeterSpeed: 150, solidInfillSpeed: 200
+            },
+            bambu_a1: {
+                name: 'Bambu Lab A1',
+                desc: '🚀 200-300 mm/s | Alta aceleración | Input Shaping',
+                layerHeight: '0.20', fillDensity: 15, perimeters: 3, nozzleDiameter: '0.4',
+                temperature: 220, bedTemp: 60, filamentDiameter: '1.75',
+                topLayers: 4, bottomLayers: 4,
+                perimeterSpeed: 200, infillSpeed: 250, travelSpeed: 350,
+                firstLayerSpeed: 50, externalPerimeterSpeed: 150, solidInfillSpeed: 200
+            },
+            bambu_p1s: {
+                name: 'Bambu Lab P1S',
+                desc: '🚀 250-400 mm/s | Muy alta aceleración | Enclosure',
+                layerHeight: '0.20', fillDensity: 15, perimeters: 3, nozzleDiameter: '0.4',
+                temperature: 220, bedTemp: 60, filamentDiameter: '1.75',
+                topLayers: 4, bottomLayers: 4,
+                perimeterSpeed: 250, infillSpeed: 300, travelSpeed: 400,
+                firstLayerSpeed: 50, externalPerimeterSpeed: 180, solidInfillSpeed: 250
+            },
+            bambu_x1c: {
+                name: 'Bambu Lab X1 Carbon',
+                desc: '🚀 300-500 mm/s | Máxima aceleración | AMS Ready',
+                layerHeight: '0.20', fillDensity: 15, perimeters: 3, nozzleDiameter: '0.4',
+                temperature: 220, bedTemp: 60, filamentDiameter: '1.75',
+                topLayers: 4, bottomLayers: 4,
+                perimeterSpeed: 300, infillSpeed: 350, travelSpeed: 500,
+                firstLayerSpeed: 50, externalPerimeterSpeed: 200, solidInfillSpeed: 300
+            },
+            ender3: {
+                name: 'Creality Ender 3',
+                desc: '🐢 40-60 mm/s | Aceleración baja | Bowden',
+                layerHeight: '0.20', fillDensity: 20, perimeters: 3, nozzleDiameter: '0.4',
+                temperature: 200, bedTemp: 60, filamentDiameter: '1.75',
+                topLayers: 4, bottomLayers: 4,
+                perimeterSpeed: 45, infillSpeed: 60, travelSpeed: 120,
+                firstLayerSpeed: 20, externalPerimeterSpeed: 30, solidInfillSpeed: 50
+            },
+            ender3_v2: {
+                name: 'Creality Ender 3 V2',
+                desc: '🐢 50-70 mm/s | Aceleración baja | Silent board',
+                layerHeight: '0.20', fillDensity: 20, perimeters: 3, nozzleDiameter: '0.4',
+                temperature: 200, bedTemp: 60, filamentDiameter: '1.75',
+                topLayers: 4, bottomLayers: 4,
+                perimeterSpeed: 50, infillSpeed: 70, travelSpeed: 150,
+                firstLayerSpeed: 20, externalPerimeterSpeed: 35, solidInfillSpeed: 60
+            },
+            ender3_s1: {
+                name: 'Creality Ender 3 S1',
+                desc: '🏃 80-120 mm/s | Aceleración media | Direct Drive',
+                layerHeight: '0.20', fillDensity: 20, perimeters: 3, nozzleDiameter: '0.4',
+                temperature: 205, bedTemp: 60, filamentDiameter: '1.75',
+                topLayers: 4, bottomLayers: 4,
+                perimeterSpeed: 80, infillSpeed: 120, travelSpeed: 150,
+                firstLayerSpeed: 25, externalPerimeterSpeed: 50, solidInfillSpeed: 80
+            },
+            prusa_mk3s: {
+                name: 'Prusa MK3S+',
+                desc: '🏃 80-100 mm/s | Aceleración media | Direct Drive',
+                layerHeight: '0.20', fillDensity: 15, perimeters: 3, nozzleDiameter: '0.4',
+                temperature: 215, bedTemp: 60, filamentDiameter: '1.75',
+                topLayers: 4, bottomLayers: 4,
+                perimeterSpeed: 60, infillSpeed: 100, travelSpeed: 180,
+                firstLayerSpeed: 20, externalPerimeterSpeed: 40, solidInfillSpeed: 80
+            },
+            prusa_mk4: {
+                name: 'Prusa MK4',
+                desc: '🚀 150-200 mm/s | Alta aceleración | Input Shaping',
+                layerHeight: '0.20', fillDensity: 15, perimeters: 3, nozzleDiameter: '0.4',
+                temperature: 215, bedTemp: 60, filamentDiameter: '1.75',
+                topLayers: 4, bottomLayers: 4,
+                perimeterSpeed: 150, infillSpeed: 200, travelSpeed: 250,
+                firstLayerSpeed: 30, externalPerimeterSpeed: 100, solidInfillSpeed: 150
+            },
+            prusa_mini: {
+                name: 'Prusa Mini+',
+                desc: '🏃 80-100 mm/s | Aceleración media | Bowden',
+                layerHeight: '0.20', fillDensity: 15, perimeters: 3, nozzleDiameter: '0.4',
+                temperature: 215, bedTemp: 60, filamentDiameter: '1.75',
+                topLayers: 4, bottomLayers: 4,
+                perimeterSpeed: 60, infillSpeed: 100, travelSpeed: 150,
+                firstLayerSpeed: 20, externalPerimeterSpeed: 40, solidInfillSpeed: 80
+            },
+            artillery_x2: {
+                name: 'Artillery Sidewinder X2',
+                desc: '🏃 80-120 mm/s | Aceleración media | Direct Drive',
+                layerHeight: '0.20', fillDensity: 20, perimeters: 3, nozzleDiameter: '0.4',
+                temperature: 205, bedTemp: 60, filamentDiameter: '1.75',
+                topLayers: 4, bottomLayers: 4,
+                perimeterSpeed: 80, infillSpeed: 120, travelSpeed: 150,
+                firstLayerSpeed: 25, externalPerimeterSpeed: 50, solidInfillSpeed: 100
+            },
+            custom: {
+                name: 'Personalizada',
+                desc: '⚙️ Configura tus propios parámetros',
+                layerHeight: '0.20', fillDensity: 15, perimeters: 3, nozzleDiameter: '0.4',
+                temperature: 200, bedTemp: 60, filamentDiameter: '1.75',
+                topLayers: 4, bottomLayers: 4,
+                perimeterSpeed: 60, infillSpeed: 80, travelSpeed: 150,
+                firstLayerSpeed: 20, externalPerimeterSpeed: 40, solidInfillSpeed: 60
+            }
+        };
+
+        // Guardar configuración
+        function saveConfig() {
+            const config = {
+                printer: document.getElementById('printerSelect').value,
+                layerHeight: document.getElementById('layerHeight').value,
+                fillDensity: document.getElementById('fillDensity').value,
+                perimeters: document.getElementById('perimeters').value,
+                nozzleDiameter: document.getElementById('nozzleDiameter').value,
+                ironing: document.getElementById('ironing').checked,
+                temperature: document.getElementById('temperature').value,
+                bedTemp: document.getElementById('bedTemp').value,
+                topLayers: document.getElementById('topLayers').value,
+                bottomLayers: document.getElementById('bottomLayers').value,
+                filamentDiameter: document.getElementById('filamentDiameter').value,
+                supports: document.getElementById('supports').value,
+                perimeterSpeed: document.getElementById('perimeterSpeed').value,
+                infillSpeed: document.getElementById('infillSpeed').value,
+                travelSpeed: document.getElementById('travelSpeed').value,
+                firstLayerSpeed: document.getElementById('firstLayerSpeed').value,
+                externalPerimeterSpeed: document.getElementById('externalPerimeterSpeed').value,
+                solidInfillSpeed: document.getElementById('solidInfillSpeed').value,
+                costFilament: document.getElementById('costFilament').value,
+                costMachine: document.getElementById('costMachine').value,
+                margin: document.getElementById('margin').value
+            };
+            localStorage.setItem('cotizador3d_config', JSON.stringify(config));
+            showSavedIndicator();
+        }
+
+        // Cargar configuración guardada
+        function loadConfig() {
+            const saved = localStorage.getItem('cotizador3d_config');
+            if (saved) {
+                try {
+                    const config = JSON.parse(saved);
+                    document.getElementById('printerSelect').value = config.printer || 'bambu_a1_mini';
+                    document.getElementById('layerHeight').value = config.layerHeight || '0.20';
+                    document.getElementById('fillDensity').value = config.fillDensity || 15;
+                    document.getElementById('perimeters').value = config.perimeters || 3;
+                    document.getElementById('nozzleDiameter').value = config.nozzleDiameter || '0.4';
+                    document.getElementById('ironing').checked = config.ironing || false;
+                    document.getElementById('temperature').value = config.temperature || 220;
+                    document.getElementById('bedTemp').value = config.bedTemp || 60;
+                    document.getElementById('topLayers').value = config.topLayers || 4;
+                    document.getElementById('bottomLayers').value = config.bottomLayers || 4;
+                    document.getElementById('filamentDiameter').value = config.filamentDiameter || '1.75';
+                    document.getElementById('supports').value = config.supports || 'none';
+                    document.getElementById('perimeterSpeed').value = config.perimeterSpeed || 200;
+                    document.getElementById('infillSpeed').value = config.infillSpeed || 250;
+                    document.getElementById('travelSpeed').value = config.travelSpeed || 300;
+                    document.getElementById('firstLayerSpeed').value = config.firstLayerSpeed || 50;
+                    document.getElementById('externalPerimeterSpeed').value = config.externalPerimeterSpeed || 150;
+                    document.getElementById('solidInfillSpeed').value = config.solidInfillSpeed || 200;
+                    document.getElementById('costFilament').value = config.costFilament || 400;
+                    document.getElementById('costMachine').value = config.costMachine || 60;
+                    document.getElementById('margin').value = config.margin || 40;
+                    
+                    // Actualizar specs de impresora
+                    const p = PRINTER_PROFILES[config.printer];
+                    if (p) document.getElementById('printerSpecs').textContent = p.desc;
+                } catch(e) {
+                    console.log('Error loading config:', e);
+                }
+            } else {
+                loadPrinterProfile();
+            }
+        }
+
+        function showSavedIndicator() {
+            const ind = document.getElementById('savedIndicator');
+            ind.classList.add('show');
+            setTimeout(() => ind.classList.remove('show'), 1500);
+        }
+
+        function onPrinterChange() {
+            loadPrinterProfile();
+            saveConfig();
+            markParamsChanged();
+        }
+
+        function onParamChange() {
+            saveConfig();
+            markParamsChanged();
+        }
+
+        function onCostChange() {
+            saveConfig();
+            // Recalcular precios si ya hay resultados
+            if (hasQuoted && window.lastSliceData) {
+                showResults(window.lastSliceData, 
+                    PRINTER_PROFILES[document.getElementById('printerSelect').value].name,
+                    getSliceParams());
+            }
+        }
+
+        function markParamsChanged() {
+            if (hasQuoted) {
+                paramsChanged = true;
+                document.getElementById('changesIndicator').classList.add('show');
+                document.getElementById('btnRecotizar').classList.add('show');
+            }
+        }
+
+        function loadPrinterProfile() {
+            const printer = document.getElementById('printerSelect').value;
+            const p = PRINTER_PROFILES[printer];
+            if (p) {
+                document.getElementById('printerSpecs').textContent = p.desc;
+                document.getElementById('layerHeight').value = p.layerHeight;
+                document.getElementById('fillDensity').value = p.fillDensity;
+                document.getElementById('perimeters').value = p.perimeters;
+                document.getElementById('nozzleDiameter').value = p.nozzleDiameter;
+                document.getElementById('temperature').value = p.temperature;
+                document.getElementById('bedTemp').value = p.bedTemp;
+                document.getElementById('filamentDiameter').value = p.filamentDiameter;
+                document.getElementById('topLayers').value = p.topLayers;
+                document.getElementById('bottomLayers').value = p.bottomLayers;
+                document.getElementById('perimeterSpeed').value = p.perimeterSpeed;
+                document.getElementById('infillSpeed').value = p.infillSpeed;
+                document.getElementById('travelSpeed').value = p.travelSpeed;
+                document.getElementById('firstLayerSpeed').value = p.firstLayerSpeed;
+                document.getElementById('externalPerimeterSpeed').value = p.externalPerimeterSpeed;
+                document.getElementById('solidInfillSpeed').value = p.solidInfillSpeed;
+            }
+        }
+
+        function toggleAdvanced() {
+            const panel = document.getElementById('advancedParams');
+            const icon = document.getElementById('advancedIcon');
+            panel.classList.toggle('show');
+            icon.textContent = panel.classList.contains('show') ? '▼' : '▶';
+        }
+
+        function recotizar() {
+            if (currentFile) {
+                processFile(currentFile);
+            }
+        }
+
         // Verificar servidor
         fetch(API + '/health')
             .then(r => r.json())
@@ -229,44 +800,67 @@
         const fileInput = document.getElementById('fileInput');
 
         ['dragenter', 'dragover'].forEach(e => {
-            dropZone.addEventListener(e, (ev) => {
-                ev.preventDefault();
-                dropZone.classList.add('dragover');
-            });
+            dropZone.addEventListener(e, (ev) => { ev.preventDefault(); dropZone.classList.add('dragover'); });
         });
         ['dragleave', 'drop'].forEach(e => {
-            dropZone.addEventListener(e, (ev) => {
-                ev.preventDefault();
-                dropZone.classList.remove('dragover');
-            });
+            dropZone.addEventListener(e, (ev) => { ev.preventDefault(); dropZone.classList.remove('dragover'); });
         });
-        dropZone.addEventListener('drop', (e) => {
-            const file = e.dataTransfer.files[0];
-            if (file) processFile(file);
-        });
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files[0]) processFile(e.target.files[0]);
-        });
+        dropZone.addEventListener('drop', (e) => { if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); });
+        fileInput.addEventListener('change', (e) => { if (e.target.files[0]) processFile(e.target.files[0]); });
+
+        function getSliceParams() {
+            return {
+                layer_height: document.getElementById('layerHeight').value,
+                fill_density: document.getElementById('fillDensity').value,
+                perimeters: document.getElementById('perimeters').value,
+                nozzle_diameter: document.getElementById('nozzleDiameter').value,
+                temperature: document.getElementById('temperature').value,
+                bed_temperature: document.getElementById('bedTemp').value,
+                filament_diameter: document.getElementById('filamentDiameter').value,
+                support_material: document.getElementById('supports').value,
+                ironing: document.getElementById('ironing').checked ? '1' : '0',
+                top_solid_layers: document.getElementById('topLayers').value,
+                bottom_solid_layers: document.getElementById('bottomLayers').value,
+                perimeter_speed: document.getElementById('perimeterSpeed').value,
+                infill_speed: document.getElementById('infillSpeed').value,
+                travel_speed: document.getElementById('travelSpeed').value,
+                first_layer_speed: document.getElementById('firstLayerSpeed').value,
+                external_perimeter_speed: document.getElementById('externalPerimeterSpeed').value,
+                solid_infill_speed: document.getElementById('solidInfillSpeed').value
+            };
+        }
 
         function processFile(file) {
-            if (!file.name.toLowerCase().endsWith('.stl')) {
-                showError('Solo archivos STL');
-                return;
-            }
+            if (!file.name.toLowerCase().endsWith('.stl')) { showError('Solo archivos STL'); return; }
+            
+            currentFile = file;
+            const printerName = PRINTER_PROFILES[document.getElementById('printerSelect').value].name;
+            const ironingEnabled = document.getElementById('ironing').checked;
+            
             document.getElementById('filename').textContent = '📁 ' + file.name;
+            document.getElementById('dropZone').classList.add('has-file');
             document.getElementById('loading').style.display = 'block';
+            document.getElementById('loadingPrinter').textContent = '🖨️ ' + printerName + (ironingEnabled ? ' ✨' : '');
             document.getElementById('results').style.display = 'none';
             document.getElementById('error').style.display = 'none';
+            document.getElementById('changesIndicator').classList.remove('show');
 
             const formData = new FormData();
             formData.append('file', file);
+            
+            const params = getSliceParams();
+            Object.keys(params).forEach(key => formData.append(key, params[key]));
 
             fetch(API + '/slice', { method: 'POST', body: formData })
                 .then(r => r.json())
                 .then(data => {
                     document.getElementById('loading').style.display = 'none';
                     if (data.ok) {
-                        showResults(data);
+                        hasQuoted = true;
+                        paramsChanged = false;
+                        window.lastSliceData = data;
+                        showResults(data, printerName, params);
+                        document.getElementById('btnRecotizar').classList.add('show');
                     } else {
                         showError(data.error || data.detail || 'Error desconocido');
                     }
@@ -277,7 +871,7 @@
                 });
         }
 
-        function showResults(data) {
+        function showResults(data, printerName, params) {
             const costFilament = parseFloat(document.getElementById('costFilament').value) || 400;
             const costMachine = parseFloat(document.getElementById('costMachine').value) || 60;
             const marginPct = parseFloat(document.getElementById('margin').value) || 40;
@@ -292,6 +886,8 @@
             const marginAmt = subtotal * (marginPct / 100);
             const total = subtotal + marginAmt;
 
+            const ironingText = params.ironing === '1' ? ' ✨' : '';
+            document.getElementById('resultPrinter').textContent = printerName + ironingText;
             document.getElementById('resGrams').textContent = grams.toFixed(1) + ' g (' + (data.filament_m || 0).toFixed(2) + ' m)';
             
             if (timeMin > 0) {
@@ -302,6 +898,7 @@
                 document.getElementById('resTime').textContent = 'No disponible';
             }
 
+            document.getElementById('resConfig').textContent = `${params.layer_height}mm | ${params.fill_density}% | ${params.perimeter_speed}mm/s${ironingText}`;
             document.getElementById('resMaterial').textContent = '$' + materialCost.toFixed(2);
             document.getElementById('resMachine').textContent = '$' + machineCost.toFixed(2);
             document.getElementById('resSubtotal').textContent = '$' + subtotal.toFixed(2);
@@ -315,6 +912,9 @@
             document.getElementById('error').textContent = '⚠️ ' + msg;
             document.getElementById('error').style.display = 'block';
         }
+
+        // Inicializar
+        loadConfig();
     </script>
 </body>
 </html>
