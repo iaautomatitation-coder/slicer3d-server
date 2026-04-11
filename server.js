@@ -37,6 +37,7 @@ app.post('/slice', upload.single('file'), function(req, res) {
   try { fs.renameSync(req.file.path, stlPath); } catch(e) { return res.status(500).json({ error: e.message }); }
   var cmd = 'slic3r --layer-height 0.2 --fill-density 15 --perimeters 3 --nozzle-diameter 0.4 --filament-diameter 1.75 --temperature 220 --bed-temperature 60 --output "' + gcodeOut + '" "' + stlPath + '"';
   console.log('CMD:', cmd);
+  console.log('STL exists:', require('fs').existsSync(stlPathStl || stlPath));
   exec(cmd, { timeout: 300000 }, function(err, stdout, stderr) {
     try { fs.unlinkSync(stlPath); } catch(e) {}
     if (err) { try { fs.unlinkSync(gcodeOut); } catch(e) {} return res.status(500).json({ error: 'Slice failed', detail: (stderr||stdout||'unknown').substring(0,800) }); }
