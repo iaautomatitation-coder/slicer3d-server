@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador 3D Pro</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2rem;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .upload-zone {
+            border: 2px dashed rgba(0,212,255,0.4);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-zone:hover {
+            border-color: #00d4ff;
+            background: rgba(0,212,255,0.05);
+        }
+        .upload-zone.dragover {
+            border-color: #00ff88;
+            background: rgba(0,255,136,0.1);
+        }
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        input[type="file"] { display: none; }
+        .config-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .config-row label {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        .config-row input {
+            width: 100px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            text-align: right;
+        }
+        .result-box {
+            display: none;
+            background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,255,136,0.1));
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 20px;
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .result-row:last-child { border: none; }
+        .result-label { color: #aaa; }
+        .result-value { font-weight: 600; }
+        .result-value.highlight {
+            font-size: 1.5rem;
+            color: #00ff88;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0,212,255,0.2);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error {
+            background: rgba(255,0,0,0.1);
+            border: 1px solid rgba(255,0,0,0.3);
+            padding: 16px;
+            border-radius: 8px;
+            color: #ff6b6b;
+            display: none;
+        }
+        .filename {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #00d4ff;
+        }
+        .server-status {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 20px;
+        }
+        .server-status.online { color: #00ff88; }
+        .server-status.offline { color: #ff6b6b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖨️ Cotizador 3D Pro</h1>
+        <p class="subtitle">Sube tu archivo STL y obtén cotización instantánea</p>
+
+        <div class="card">
+            <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📦</div>
+                <p>Arrastra tu archivo STL aquí</p>
+                <p style="color:#666; font-size:0.8rem; margin-top:8px;">o haz clic para seleccionar</p>
+                <div class="filename" id="filename"></div>
+            </div>
+            <input type="file" id="fileInput" accept=".stl">
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom:16px; font-size:1rem;">⚙️ Configuración</h3>
+            <div class="config-row">
+                <label>Costo filamento ($/kg)</label>
+                <input type="number" id="costFilament" value="400">
+            </div>
+            <div class="config-row">
+                <label>Tarifa máquina ($/hr)</label>
+                <input type="number" id="costMachine" value="60">
+            </div>
+            <div class="config-row">
+                <label>Margen (%)</label>
+                <input type="number" id="margin" value="40">
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analizando con PrusaSlicer...</p>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="result-box" id="results">
+            <h3 style="margin-bottom:16px;">📊 Resultado</h3>
+            <div class="result-row">
+                <span class="result-label">Filamento</span>
+                <span class="result-value" id="resGrams">--</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Tiempo estimado</span>
+                <span class="result-value" id="resTime">--</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Costo material</span>
+                <span class="result-value" id="resMaterial">--</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Costo máquina</span>
+                <span class="result-value" id="resMachine">--</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Subtotal</span>
+                <span class="result-value" id="resSubtotal">--</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Margen</span>
+                <span class="result-value" id="resMargin">--</span>
+            </div>
+            <div class="result-row" style="margin-top:10px; padding-top:16px; border-top:2px solid rgba(0,255,136,0.3);">
+                <span class="result-label" style="font-size:1.1rem;">💰 PRECIO FINAL</span>
+                <span class="result-value highlight" id="resTotal">--</span>
+            </div>
+        </div>
+
+        <div class="server-status" id="serverStatus">Verificando servidor...</div>
+    </div>
+
+    <script>
+        const API = 'https://slicer3d-server-production.up.railway.app';
+        
+        // Verificar servidor
+        fetch(API + '/health')
+            .then(r => r.json())
+            .then(d => {
+                document.getElementById('serverStatus').textContent = '✅ Servidor online (PrusaSlicer)';
+                document.getElementById('serverStatus').className = 'server-status online';
+            })
+            .catch(() => {
+                document.getElementById('serverStatus').textContent = '❌ Servidor offline';
+                document.getElementById('serverStatus').className = 'server-status offline';
+            });
+
+        // Drag & drop
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        ['dragenter', 'dragover'].forEach(e => {
+            dropZone.addEventListener(e, (ev) => {
+                ev.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+        });
+        ['dragleave', 'drop'].forEach(e => {
+            dropZone.addEventListener(e, (ev) => {
+                ev.preventDefault();
+                dropZone.classList.remove('dragover');
+            });
+        });
+        dropZone.addEventListener('drop', (e) => {
+            const file = e.dataTransfer.files[0];
+            if (file) processFile(file);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) processFile(e.target.files[0]);
+        });
+
+        function processFile(file) {
+            if (!file.name.toLowerCase().endsWith('.stl')) {
+                showError('Solo archivos STL');
+                return;
+            }
+            document.getElementById('filename').textContent = '📁 ' + file.name;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch(API + '/slice', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('loading').style.display = 'none';
+                    if (data.ok) {
+                        showResults(data);
+                    } else {
+                        showError(data.error || data.detail || 'Error desconocido');
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('loading').style.display = 'none';
+                    showError('Error de conexión: ' + err.message);
+                });
+        }
+
+        function showResults(data) {
+            const costFilament = parseFloat(document.getElementById('costFilament').value) || 400;
+            const costMachine = parseFloat(document.getElementById('costMachine').value) || 60;
+            const marginPct = parseFloat(document.getElementById('margin').value) || 40;
+
+            const grams = data.grams || 0;
+            const timeMin = data.time_min || 0;
+            const timeHrs = timeMin / 60;
+
+            const materialCost = (grams / 1000) * costFilament;
+            const machineCost = timeHrs * costMachine;
+            const subtotal = materialCost + machineCost;
+            const marginAmt = subtotal * (marginPct / 100);
+            const total = subtotal + marginAmt;
+
+            document.getElementById('resGrams').textContent = grams.toFixed(1) + ' g (' + (data.filament_m || 0).toFixed(2) + ' m)';
+            
+            if (timeMin > 0) {
+                const hrs = Math.floor(timeMin / 60);
+                const mins = Math.round(timeMin % 60);
+                document.getElementById('resTime').textContent = hrs > 0 ? `${hrs}h ${mins}m` : `${mins} min`;
+            } else {
+                document.getElementById('resTime').textContent = 'No disponible';
+            }
+
+            document.getElementById('resMaterial').textContent = '$' + materialCost.toFixed(2);
+            document.getElementById('resMachine').textContent = '$' + machineCost.toFixed(2);
+            document.getElementById('resSubtotal').textContent = '$' + subtotal.toFixed(2);
+            document.getElementById('resMargin').textContent = '$' + marginAmt.toFixed(2) + ' (' + marginPct + '%)';
+            document.getElementById('resTotal').textContent = '$' + total.toFixed(2) + ' MXN';
+
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function showError(msg) {
+            document.getElementById('error').textContent = '⚠️ ' + msg;
+            document.getElementById('error').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
