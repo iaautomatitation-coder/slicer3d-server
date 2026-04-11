@@ -38,7 +38,7 @@ app.post('/slice', upload.single('file'), function(req, res) {
     return res.status(500).json({ error: 'rename failed', detail: e.message });
   }
 
-  var cmd = 'prusa-slicer'
+  var cmd = 'prusa-slicer --export-gcode'
     + ' --layer-height 0.2'
     + ' --fill-density 15%'
     + ' --perimeters 3'
