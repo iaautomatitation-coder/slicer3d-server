@@ -7,12 +7,10 @@ RUN apt-get update && apt-get install -y \
     libegl1 libgl1-mesa-glx libxkbcommon0 libxcb-cursor0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Descargar PrusaSlicer AppImage
 RUN wget -q https://github.com/prusa3d/PrusaSlicer/releases/download/version_2.7.4/PrusaSlicer-2.7.4+linux-x64-GTK3-202404050928.AppImage \
     -O /usr/local/bin/prusaslicer \
     && chmod +x /usr/local/bin/prusaslicer
 
-# Extraer AppImage (necesario para Docker)
 RUN cd /usr/local/bin && ./prusaslicer --appimage-extract \
     && ln -s /usr/local/bin/squashfs-root/AppRun /usr/local/bin/prusa-slicer
 
