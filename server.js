@@ -34,6 +34,9 @@ app.post('/slice', upload.single('file'), function(req, res) {
   }
 
   var stlPath  = req.file.path;
+  var stlPathStl = stlPath + ".stl";
+  fs.renameSync(stlPath, stlPathStl);
+  stlPath = stlPathStl;
   var gcodeOut = path.join(os.tmpdir(), req.file.filename + '.gcode');
 
   // slic3r 1.3.x CLI: slic3r input.stl --output output.gcode
