@@ -40,7 +40,7 @@ app.post('/slice', upload.single('file'), function(req, res) {
 
   var cmd = 'prusa-slicer'
     + ' --layer-height 0.2'
-    + ' --fill-density 15'
+    + ' --fill-density 15%'
     + ' --perimeters 3'
     + ' --nozzle-diameter 0.4'
     + ' --filament-diameter 1.75'
