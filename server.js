@@ -34,7 +34,7 @@ app.post('/slice', upload.single('file'), function(req, res) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
 
-  var stlPath = req.file.path;
+  var stlPath = req.file.path + '.stl'; fs.renameSync(req.file.path, stlPath);
   var gcodePath = stlPath + '.gcode';
 
   // Obtener parámetros del request (con defaults)
