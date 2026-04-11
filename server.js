@@ -17,12 +17,9 @@ app.use(function(req, res, next) {
 });
 
 app.use(express.json());
-
 const upload = multer({ dest: os.tmpdir(), limits: { fileSize: 20 * 1024 * 1024 } });
 
-app.get('/', function(req, res) {
-  res.json({ status: 'ok', service: 'Slicer3D API', version: '1.5.0' });
-});
+app.get('/', function(req, res) { res.json({ status: 'ok', version: '1.6.0' }); });
 
 app.get('/health', function(req, res) {
   exec('slic3r --version 2>&1 || echo "not_found"', function(err, stdout) {
@@ -32,21 +29,47 @@ app.get('/health', function(req, res) {
 
 app.post('/slice', upload.single('file'), function(req, res) {
   if (!req.file) return res.status(400).json({ error: 'No STL file uploaded' });
-  var stlPath = req.file.path + '.stl';
-  var gcodeOut = req.file.path + '.gcode';
-  try { fs.renameSync(req.file.path, stlPath); } catch(e) { return res.status(500).json({ error: e.message }); }
-  var cmd = 'slic3r --layer-height 0.2 --fill-density 15 --perimeters 3 --nozzle-diameter 0.4 --filament-diameter 1.75 --temperature 220 --bed-temperature 60 --output "' + gcodeOut + '" "' + stlPath + '"';
+
+  var tmpPath  = req.file.path;
+  var stlPath  = tmpPath + '.stl';
+  var gcodePath = tmpPath + '.gcode';
+
+  try { fs.renameSync(tmpPath, stlPath); } catch(e) {
+    return res.status(500).json({ error: 'rename failed', detail: e.message });
+  }
+
+  console.log('STL exists:', fs.existsSync(stlPath), 'size:', fs.statSync(stlPath).size);
+
+  var cmd = 'slic3r'
+    + ' --layer-height 0.2'
+    + ' --fill-density 15'
+    + ' --perimeters 3'
+    + ' --nozzle-diameter 0.4'
+    + ' --filament-diameter 1.75'
+    + ' --temperature 220'
+    + ' --bed-temperature 60'
+    + ' --output "' + gcodePath + '"'
+    + ' "' + stlPath + '"';
+
   console.log('CMD:', cmd);
-  console.log('STL exists:', require('fs').existsSync(stlPathStl || stlPath));
+
   exec(cmd, { timeout: 300000 }, function(err, stdout, stderr) {
     try { fs.unlinkSync(stlPath); } catch(e) {}
-    if (err) { try { fs.unlinkSync(gcodeOut); } catch(e) {} return res.status(500).json({ error: 'Slice failed', detail: (stderr||stdout||'unknown').substring(0,800) }); }
-    if (!fs.existsSync(gcodeOut)) return res.status(500).json({ error: 'No gcode generated' });
+    if (err) {
+      console.error('STDERR:', stderr);
+      console.error('STDOUT:', stdout);
+      try { fs.unlinkSync(gcodePath); } catch(e) {}
+      return res.status(500).json({ error: 'Slice failed', detail: (stderr||stdout||'unknown').substring(0,800) });
+    }
+    if (!fs.existsSync(gcodePath)) return res.status(500).json({ error: 'No gcode generated' });
     try {
-      var result = parseGcode(gcodeOut);
-      try { fs.unlinkSync(gcodeOut); } catch(e) {}
+      var result = parseGcode(gcodePath);
+      try { fs.unlinkSync(gcodePath); } catch(e) {}
       res.json({ ok: true, grams: result.grams, time_min: result.time_min, filament_m: result.filament_m });
-    } catch(e) { try { fs.unlinkSync(gcodeOut); } catch(x) {} res.status(500).json({ error: 'Parse failed', detail: e.message }); }
+    } catch(e) {
+      try { fs.unlinkSync(gcodePath); } catch(x) {}
+      res.status(500).json({ error: 'Parse failed', detail: e.message });
+    }
   });
 });
 
@@ -70,4 +93,4 @@ function parseGcode(f) {
   return { grams: grams, time_min: Math.round(time_min), filament_m: filament_m };
 }
 
-app.listen(PORT, function() { console.log('Slicer3D v1.5.0 on port ' + PORT); });
+app.listen(PORT, function() { console.log('Slicer3D v1.6.0 on port ' + PORT); });
