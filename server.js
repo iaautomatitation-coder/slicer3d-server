@@ -19,7 +19,7 @@ app.use(function(req, res, next) {
 app.use(express.json());
 const upload = multer({ dest: os.tmpdir(), limits: { fileSize: 20 * 1024 * 1024 } });
 
-app.get('/', function(req, res) { res.json({ status: 'ok', version: '1.7.0' }); });
+app.get('/', function(req, res) { res.json({ status: 'ok', version: '2.0.0' }); });
 
 app.get('/health', function(req, res) {
   exec('slic3r --version 2>&1 || echo "not_found"', function(err, stdout) {
@@ -65,12 +65,6 @@ app.post('/slice', upload.single('file'), function(req, res) {
       return res.status(500).json({ error: 'No gcode generated', stdout: stdout, stderr: stderr });
     }
 
-    // Log primeras 50 líneas del gcode para debug
-    try {
-      var sample = fs.readFileSync(gcodePath, 'utf8').split('\n').slice(0,50).join('\n');
-      console.log('GCODE SAMPLE:\n', sample);
-    } catch(e) {}
-
     try {
       var result = parseGcode(gcodePath);
       try { fs.unlinkSync(gcodePath); } catch(e) {}
@@ -85,55 +79,140 @@ app.post('/slice', upload.single('file'), function(req, res) {
 function parseGcode(f) {
   var content = fs.readFileSync(f, 'utf8');
   var lines = content.split('\n');
-  var grams = null, time_min = null, filament_m = null;
+  
+  console.log('=== PARSER v2.0 ===');
+  console.log('Total lines:', lines.length);
 
+  var comments = [];
   for (var i = 0; i < lines.length; i++) {
-    var l = lines[i];
+    if (lines[i].trim().indexOf(';') === 0) {
+      comments.push(lines[i]);
+    }
+  }
+  
+  console.log('=== GCODE COMMENTS (last 40) ===');
+  var lastComments = comments.slice(-40);
+  for (var j = 0; j < lastComments.length; j++) {
+    console.log(lastComments[j]);
+  }
+  console.log('=== END COMMENTS ===');
 
-    // Slic3r 1.x formats:
-    // ; filament used = 1234.5mm (2.3cm3)
-    if (l.indexOf('; filament used =') !== -1) {
-      var mm  = l.match(/([\d.]+)\s*mm/);
-      var cm3 = l.match(/([\d.]+)\s*cm3/);
-      if (mm)  filament_m = parseFloat(mm[1]) / 1000;
-      if (cm3) grams = parseFloat((parseFloat(cm3[1]) * 1.24).toFixed(2));
+  var filament_mm = null;
+  var filament_cm3 = null;
+  var filament_g = null;
+  var time_seconds = null;
+
+  for (var k = 0; k < comments.length; k++) {
+    var line = comments[k];
+
+    var match = line.match(/;\s*filament\s+used\s*=\s*([\d.]+)\s*mm\s*\(([\d.]+)\s*cm3\)/i);
+    if (match) {
+      filament_mm = parseFloat(match[1]);
+      filament_cm3 = parseFloat(match[2]);
+      console.log('[MATCH] slic3r classic:', filament_mm + 'mm,', filament_cm3 + 'cm3');
     }
-    // ; estimated printing time = 1h 2m 3s
-    // ; estimated printing time (normal mode) = 1h 2m 3s
-    if (l.indexOf('estimated printing time') !== -1) {
-      var h  = l.match(/(\d+)h/);
-      var mi = l.match(/(\d+)m/);
-      var s  = l.match(/(\d+)s/);
-      time_min = (h?parseInt(h[1]):0)*60 + (mi?parseInt(mi[1]):0) + (s?parseInt(s[1]):0)/60;
+    
+    match = line.match(/;\s*filament\s+used\s*\[mm\]\s*=\s*([\d.]+)/i);
+    if (match && filament_mm === null) {
+      filament_mm = parseFloat(match[1]);
+      console.log('[MATCH] prusaslicer mm:', filament_mm + 'mm');
     }
-    // ;TIME:8945 (CuraEngine/some slicers)
-    if (l.indexOf(';TIME:') === 0) {
-      var tm = l.match(/;TIME:(\d+)/);
-      if (tm) time_min = parseInt(tm[1]) / 60;
+    
+    match = line.match(/;\s*filament\s+used\s*\[cm3\]\s*=\s*([\d.]+)/i);
+    if (match && filament_cm3 === null) {
+      filament_cm3 = parseFloat(match[1]);
+      console.log('[MATCH] prusaslicer cm3:', filament_cm3 + 'cm3');
     }
-    // ;Filament used: 2.5m
-    if (l.indexOf(';Filament used:') === 0) {
-      var fm = l.match(/([\d.]+)m/);
-      if (fm) filament_m = parseFloat(fm[1]);
+    
+    match = line.match(/;\s*filament\s+used\s*\[g\]\s*=\s*([\d.]+)/i);
+    if (match) {
+      filament_g = parseFloat(match[1]);
+      console.log('[MATCH] prusaslicer g:', filament_g + 'g');
+    }
+    
+    match = line.match(/;\s*filament\s+used\s*=\s*([\d.]+)\s*mm(?!\s*\()/i);
+    if (match && filament_mm === null) {
+      filament_mm = parseFloat(match[1]);
+      console.log('[MATCH] generic mm:', filament_mm + 'mm');
+    }
+    
+    match = line.match(/;\s*Filament\s+used:\s*([\d.]+)\s*m/i);
+    if (match && filament_mm === null) {
+      filament_mm = parseFloat(match[1]) * 1000;
+      console.log('[MATCH] cura m:', filament_mm + 'mm');
+    }
+
+    if (time_seconds === null) {
+      match = line.match(/;\s*estimated\s+printing\s+time\s*\([^)]*\)\s*=\s*(.+)/i);
+      if (match) {
+        time_seconds = parseTimeStr(match[1]);
+        if (time_seconds) console.log('[MATCH] time with mode:', time_seconds + 's');
+      }
+      
+      if (time_seconds === null) {
+        match = line.match(/;\s*estimated\s+printing\s+time\s*=\s*(.+)/i);
+        if (match) {
+          time_seconds = parseTimeStr(match[1]);
+          if (time_seconds) console.log('[MATCH] time simple:', time_seconds + 's');
+        }
+      }
+      
+      match = line.match(/;\s*TIME:\s*(\d+)/i);
+      if (match && time_seconds === null) {
+        time_seconds = parseInt(match[1]);
+        console.log('[MATCH] cura time:', time_seconds + 's');
+      }
     }
   }
 
-  // Log lo que encontramos
-  console.log('PARSE RESULT: grams=', grams, 'time_min=', time_min, 'filament_m=', filament_m);
-
-  if (grams === null && filament_m !== null) {
+  if (filament_cm3 !== null && filament_g === null) {
+    filament_g = filament_cm3 * 1.24;
+    console.log('[CALC] g from cm3:', filament_g.toFixed(2) + 'g');
+  }
+  
+  if (filament_mm !== null && filament_g === null) {
     var r = 0.0875;
-    grams = parseFloat((Math.PI * r * r * filament_m * 100 * 1.24).toFixed(2));
+    var length_cm = filament_mm / 10;
+    var volume_cm3 = Math.PI * r * r * length_cm;
+    filament_g = volume_cm3 * 1.24;
+    console.log('[CALC] g from mm:', filament_g.toFixed(2) + 'g');
   }
 
-  if (grams === null || time_min === null) {
-    // Buscar cualquier línea con números útiles para debug
-    var hints = lines.filter(function(l) { return l.indexOf(';') === 0; }).slice(0,30).join('\n');
-    console.log('GCODE COMMENTS:', hints);
-    throw new Error('Parse failed. Lines: ' + lines.length);
+  var filament_m = filament_mm !== null ? filament_mm / 1000 : null;
+  var time_min = time_seconds !== null ? time_seconds / 60 : null;
+
+  console.log('=== FINAL RESULT ===');
+  console.log('grams:', filament_g, 'time_min:', time_min, 'filament_m:', filament_m);
+
+  if (filament_g === null) {
+    console.log('ERROR: No se encontro filamento en el gcode');
+    throw new Error('Parse failed: filament not found. Lines: ' + lines.length);
   }
 
-  return { grams: grams, time_min: Math.round(time_min), filament_m: filament_m };
+  return {
+    grams: parseFloat(filament_g.toFixed(2)),
+    time_min: time_min !== null ? Math.round(time_min) : null,
+    filament_m: filament_m !== null ? parseFloat(filament_m.toFixed(2)) : null
+  };
 }
 
-app.listen(PORT, function() { console.log('Slicer3D v1.7.0 on port ' + PORT); });
+function parseTimeStr(str) {
+  if (!str) return null;
+  var total = 0;
+  
+  var d = str.match(/(\d+)\s*d/i);
+  if (d) total += parseInt(d[1]) * 86400;
+  
+  var h = str.match(/(\d+)\s*h/i);
+  if (h) total += parseInt(h[1]) * 3600;
+  
+  var m = str.match(/(\d+)\s*m(?!s)/i);
+  if (m) total += parseInt(m[1]) * 60;
+  
+  var s = str.match(/(\d+)\s*s/i);
+  if (s) total += parseInt(s[1]);
+  
+  return total > 0 ? total : null;
+}
+
+app.listen(PORT, function() { console.log('Slicer3D v2.0.0 on port ' + PORT); });
