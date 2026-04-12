@@ -13,7 +13,7 @@ const upload = multer({ dest: '/tmp/uploads/' });
 app.get('/', (req, res) => {
     res.json({ 
         status: 'ok', 
-        version: '4.1.0',
+        version: '4.2.0',
         features: ['FDM', 'SLA'],
         timestamp: new Date().toISOString()
     });
@@ -172,19 +172,33 @@ function calculateFDM(stlPath, params) {
 
 function parseGcode(gcode) {
     let grams = 0, timeMin = 0, meters = 0, layers = 0;
-    const filamentMatch = gcode.match(/; filament used \[g\] = ([\d.]+)/);
-    if (filamentMatch) grams = parseFloat(filamentMatch[1]);
+
+    // METROS
+    const mmMatch = gcode.match(/; filament used \[mm\] = ([\d.]+)/);
+    if (mmMatch) meters = parseFloat(mmMatch[1]) / 1000;
+
+    // GRAMOS desde cm3 × densidad PLA 1.24 g/cm3
+    const cm3Match = gcode.match(/; filament used \[cm3\] = ([\d.]+)/);
+    if (cm3Match) grams = parseFloat(cm3Match[1]) * 1.24;
+
+    // TIEMPO
     const timeMatch = gcode.match(/; estimated printing time[^=]*= (.+)/);
     if (timeMatch) {
         const t = timeMatch[1];
         const h = t.match(/(\d+)h/), m = t.match(/(\d+)m/), s = t.match(/(\d+)s/);
         timeMin = (h ? parseInt(h[1]) * 60 : 0) + (m ? parseInt(m[1]) : 0) + (s ? parseInt(s[1]) / 60 : 0);
     }
-    const metersMatch = gcode.match(/; filament used \[mm\] = ([\d.]+)/);
-    if (metersMatch) meters = parseFloat(metersMatch[1]) / 1000;
-    const layerMatch = gcode.match(/; total layers count = (\d+)/);
-    if (layerMatch) layers = parseInt(layerMatch[1]);
-    return { grams, timeMin, meters, layers };
+
+    // CAPAS — contar LAYER_CHANGE en el gcode
+    const layerChanges = (gcode.match(/;LAYER_CHANGE/g) || []).length;
+    if (layerChanges > 0) layers = layerChanges;
+
+    return {
+        grams: parseFloat(grams.toFixed(2)),
+        timeMin: parseFloat(timeMin.toFixed(2)),
+        meters: parseFloat(meters.toFixed(4)),
+        layers
+    };
 }
 
 function formatTime(minutes) {
@@ -199,6 +213,6 @@ function cleanup(stlPath) {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Slicer Server v4.1.0 running on port ${PORT}`);
+    console.log(`Slicer Server v4.2.0 running on port ${PORT}`);
     console.log(`Features: FDM (PrusaSlicer) + SLA (calibrated formula)`);
 });
