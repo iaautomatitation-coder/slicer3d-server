@@ -2,9 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const { execSync } = require('child_process');
 const fs = require('fs');
-const path = require('path');
 const cors = require('cors');
-const NodeStl = require('node-stl');
 
 const app = express();
 app.use(cors());
@@ -12,7 +10,6 @@ app.use(express.json());
 
 const upload = multer({ dest: '/tmp/uploads/' });
 
-// Health check
 app.get('/', (req, res) => {
     res.json({ 
         status: 'ok', 
@@ -22,215 +19,176 @@ app.get('/', (req, res) => {
     });
 });
 
-// Main slice endpoint - supports FDM and SLA
 app.post('/slice', upload.single('file'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ ok: false, error: 'No file uploaded' });
     }
 
     const technology = req.body.technology || 'FDM';
-    
-    // Rename to .stl extension
     const stlPath = req.file.path + '.stl';
     fs.renameSync(req.file.path, stlPath);
 
     try {
         if (technology === 'SLA') {
-            // SLA: Calculate using node-stl (volume-based)
             const result = calculateSLA(stlPath, req.body);
             cleanup(stlPath);
             return res.json(result);
         } else {
-            // FDM: Use PrusaSlicer
             const result = calculateFDM(stlPath, req.body);
             cleanup(stlPath);
             return res.json(result);
         }
     } catch (error) {
         cleanup(stlPath);
-        console.error('Slice error:', error);
         return res.status(500).json({ ok: false, error: error.message });
     }
 });
 
-// SLA Calculation using node-stl
+function parseSTL(buffer) {
+    const vertices = [];
+    const header = buffer.slice(0, 80).toString('utf8');
+    const isAscii = header.startsWith('solid') && !header.includes('\0');
+    
+    if (isAscii) {
+        const text = buffer.toString('utf8');
+        const vertexRegex = /vertex\s+([-\d.eE+]+)\s+([-\d.eE+]+)\s+([-\d.eE+]+)/g;
+        let match;
+        while ((match = vertexRegex.exec(text)) !== null) {
+            vertices.push([parseFloat(match[1]), parseFloat(match[2]), parseFloat(match[3])]);
+        }
+    } else {
+        const numTriangles = buffer.readUInt32LE(80);
+        let offset = 84;
+        for (let i = 0; i < numTriangles; i++) {
+            offset += 12;
+            for (let j = 0; j < 3; j++) {
+                vertices.push([
+                    buffer.readFloatLE(offset),
+                    buffer.readFloatLE(offset + 4),
+                    buffer.readFloatLE(offset + 8)
+                ]);
+                offset += 12;
+            }
+            offset += 2;
+        }
+    }
+    return vertices;
+}
+
+function calculateVolume(vertices) {
+    let volume = 0;
+    for (let i = 0; i < vertices.length; i += 3) {
+        const v1 = vertices[i], v2 = vertices[i + 1], v3 = vertices[i + 2];
+        if (!v1 || !v2 || !v3) continue;
+        const crossX = v2[1] * v3[2] - v2[2] * v3[1];
+        const crossY = v2[2] * v3[0] - v2[0] * v3[2];
+        const crossZ = v2[0] * v3[1] - v2[1] * v3[0];
+        volume += (v1[0] * crossX + v1[1] * crossY + v1[2] * crossZ) / 6;
+    }
+    return Math.abs(volume);
+}
+
+function calculateBoundingBox(vertices) {
+    if (vertices.length === 0) return { size: [0, 0, 0] };
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+    for (const v of vertices) {
+        minX = Math.min(minX, v[0]); minY = Math.min(minY, v[1]); minZ = Math.min(minZ, v[2]);
+        maxX = Math.max(maxX, v[0]); maxY = Math.max(maxY, v[1]); maxZ = Math.max(maxZ, v[2]);
+    }
+    return { size: [maxX - minX, maxY - minY, maxZ - minZ] };
+}
+
 function calculateSLA(stlPath, params) {
-    const stl = new NodeStl(stlPath);
+    const buffer = fs.readFileSync(stlPath);
+    const vertices = parseSTL(buffer);
+    const volumeMm3 = calculateVolume(vertices);
+    const volumeCm3 = volumeMm3 / 1000;
+    const bbox = calculateBoundingBox(vertices);
+    const heightMm = bbox.size[2];
     
-    // Volume in cm³ (= ml of resin)
-    const volumeCm3 = stl.volume;
-    
-    // Bounding box [x, y, z] in mm
-    const boundingBox = stl.boundingBox;
-    const heightMm = boundingBox[2];
-    const widthMm = boundingBox[0];
-    const depthMm = boundingBox[1];
-    
-    // Layer parameters
-    const layerHeight = parseFloat(params.layer_height) || 0.05; // 50 micras default
+    const layerHeight = parseFloat(params.layer_height) || 0.05;
     const layers = Math.ceil(heightMm / layerHeight);
-    
-    // Exposure times (seconds)
     const normalExposure = parseFloat(params.exposure_time) || 8;
     const bottomExposure = parseFloat(params.bottom_exposure) || 60;
     const bottomLayers = parseInt(params.bottom_layers) || 5;
-    const liftTime = parseFloat(params.lift_time) || 5; // tiempo de levantamiento por capa
+    const liftTime = parseFloat(params.lift_time) || 5;
     
-    // Time calculation
-    const bottomTime = bottomLayers * (bottomExposure + liftTime);
-    const normalTime = (layers - bottomLayers) * (normalExposure + liftTime);
-    const totalSeconds = bottomTime + normalTime;
-    const timeMin = totalSeconds / 60;
+    const actualBottomLayers = Math.min(bottomLayers, layers);
+    const bottomTime = actualBottomLayers * (bottomExposure + liftTime);
+    const normalTime = Math.max(0, layers - actualBottomLayers) * (normalExposure + liftTime);
+    const timeMin = (bottomTime + normalTime) / 60;
     
-    // Add support factor (typically 5-15% extra resin)
     const supportFactor = parseFloat(params.support_factor) || 1.10;
     const mlResin = volumeCm3 * supportFactor;
     
-    // Surface area for reference
-    const surfaceArea = stl.area; // cm²
-    
     return {
-        ok: true,
-        technology: 'SLA',
+        ok: true, technology: 'SLA',
         ml_resin: parseFloat(mlResin.toFixed(2)),
         volume_cm3: parseFloat(volumeCm3.toFixed(2)),
         layers: layers,
         time_min: parseFloat(timeMin.toFixed(1)),
         time_formatted: formatTime(timeMin),
         height_mm: parseFloat(heightMm.toFixed(2)),
-        width_mm: parseFloat(widthMm.toFixed(2)),
-        depth_mm: parseFloat(depthMm.toFixed(2)),
-        surface_area_cm2: parseFloat(surfaceArea.toFixed(2)),
-        layer_height_mm: layerHeight,
-        exposure_time_s: normalExposure,
-        bottom_exposure_s: bottomExposure,
-        bottom_layers: bottomLayers
+        width_mm: parseFloat(bbox.size[0].toFixed(2)),
+        depth_mm: parseFloat(bbox.size[1].toFixed(2))
     };
 }
 
-// FDM Calculation using PrusaSlicer
 function calculateFDM(stlPath, params) {
     const temperature = params.temperature || 210;
     const layerHeight = params.layer_height || 0.2;
     const fillDensity = params.fill_density || 15;
-    
-    // Build PrusaSlicer command
     const outputPath = stlPath.replace('.stl', '.gcode');
-    const prusaCmd = `/usr/local/bin/squashfs-root/AppRun --export-gcode ` +
-        `--layer-height ${layerHeight} ` +
-        `--fill-density ${fillDensity}% ` +
-        `--temperature ${temperature} ` +
-        `--output ${outputPath} ` +
-        `"${stlPath}" 2>&1`;
-
-    try {
-        execSync(prusaCmd, { timeout: 120000 });
-    } catch (e) {
-        // PrusaSlicer may return non-zero but still work
-    }
-
-    if (!fs.existsSync(outputPath)) {
-        throw new Error('PrusaSlicer failed to generate gcode');
-    }
-
+    
+    const prusaCmd = `/usr/local/bin/squashfs-root/AppRun --export-gcode --layer-height ${layerHeight} --fill-density ${fillDensity}% --temperature ${temperature} --output ${outputPath} "${stlPath}" 2>&1`;
+    try { execSync(prusaCmd, { timeout: 120000 }); } catch (e) {}
+    
+    if (!fs.existsSync(outputPath)) throw new Error('PrusaSlicer failed');
+    
     const gcode = fs.readFileSync(outputPath, 'utf8');
     fs.unlinkSync(outputPath);
-
-    // Parse gcode for stats
     const stats = parseGcode(gcode);
-
+    
     return {
-        ok: true,
-        technology: 'FDM',
+        ok: true, technology: 'FDM',
         grams: stats.grams,
         time_min: stats.timeMin,
         time_formatted: formatTime(stats.timeMin),
         meters: stats.meters,
-        layers: stats.layers,
-        layer_height_mm: parseFloat(layerHeight),
-        fill_density: fillDensity
+        layers: stats.layers
     };
 }
 
-// Parse PrusaSlicer gcode for statistics
 function parseGcode(gcode) {
-    let grams = 0;
-    let timeMin = 0;
-    let meters = 0;
-    let layers = 0;
-
-    // PrusaSlicer comments
+    let grams = 0, timeMin = 0, meters = 0, layers = 0;
     const filamentMatch = gcode.match(/; filament used \[g\] = ([\d.]+)/);
     if (filamentMatch) grams = parseFloat(filamentMatch[1]);
-
     const timeMatch = gcode.match(/; estimated printing time[^=]*= (.+)/);
     if (timeMatch) {
-        const timeStr = timeMatch[1];
-        // Parse "1h 23m 45s" or "23m 45s" format
-        const hours = timeStr.match(/(\d+)h/);
-        const mins = timeStr.match(/(\d+)m/);
-        const secs = timeStr.match(/(\d+)s/);
-        timeMin = (hours ? parseInt(hours[1]) * 60 : 0) +
-                  (mins ? parseInt(mins[1]) : 0) +
-                  (secs ? parseInt(secs[1]) / 60 : 0);
+        const t = timeMatch[1];
+        const h = t.match(/(\d+)h/), m = t.match(/(\d+)m/), s = t.match(/(\d+)s/);
+        timeMin = (h ? parseInt(h[1]) * 60 : 0) + (m ? parseInt(m[1]) : 0) + (s ? parseInt(s[1]) / 60 : 0);
     }
-
     const metersMatch = gcode.match(/; filament used \[mm\] = ([\d.]+)/);
     if (metersMatch) meters = parseFloat(metersMatch[1]) / 1000;
-
     const layerMatch = gcode.match(/; total layers count = (\d+)/);
     if (layerMatch) layers = parseInt(layerMatch[1]);
-
     return { grams, timeMin, meters, layers };
 }
 
-// Format time as "Xh Ym"
 function formatTime(minutes) {
     const hrs = Math.floor(minutes / 60);
     const mins = Math.round(minutes % 60);
-    if (hrs > 0) {
-        return `${hrs}h ${mins}m`;
-    }
-    return `${mins}m`;
+    return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
 }
 
-// Cleanup temp files
 function cleanup(stlPath) {
-    try {
-        if (fs.existsSync(stlPath)) fs.unlinkSync(stlPath);
-    } catch (e) {}
+    try { if (fs.existsSync(stlPath)) fs.unlinkSync(stlPath); } catch (e) {}
 }
-
-// STL info endpoint (without slicing)
-app.post('/info', upload.single('file'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ ok: false, error: 'No file uploaded' });
-    }
-
-    const stlPath = req.file.path + '.stl';
-    fs.renameSync(req.file.path, stlPath);
-
-    try {
-        const stl = new NodeStl(stlPath);
-        cleanup(stlPath);
-
-        return res.json({
-            ok: true,
-            volume_cm3: parseFloat(stl.volume.toFixed(2)),
-            weight_g: parseFloat(stl.weight.toFixed(2)),
-            bounding_box: stl.boundingBox.map(v => parseFloat(v.toFixed(2))),
-            surface_area_cm2: parseFloat(stl.area.toFixed(2)),
-            center_of_mass: stl.centerOfMass.map(v => parseFloat(v.toFixed(2))),
-            is_watertight: stl.isWatertight
-        });
-    } catch (error) {
-        cleanup(stlPath);
-        return res.status(500).json({ ok: false, error: error.message });
-    }
-});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🖨️ Slicer Server v4.0.0 running on port ${PORT}`);
-    console.log(`   Features: FDM (PrusaSlicer) + SLA (node-stl)`);
+    console.log(`Slicer Server v4.0.0 running on port ${PORT}`);
+    console.log(`Features: FDM (PrusaSlicer) + SLA (pure JS parser)`);
 });
