@@ -13,7 +13,7 @@ const upload = multer({ dest: '/tmp/uploads/' });
 app.get('/', (req, res) => {
     res.json({ 
         status: 'ok', 
-        version: '4.0.0',
+        version: '4.1.0',
         features: ['FDM', 'SLA'],
         timestamp: new Date().toISOString()
     });
@@ -109,18 +109,28 @@ function calculateSLA(stlPath, params) {
     
     const layerHeight = parseFloat(params.layer_height) || 0.05;
     const layers = Math.ceil(heightMm / layerHeight);
-    const normalExposure = parseFloat(params.exposure_time) || 8;
-    const bottomExposure = parseFloat(params.bottom_exposure) || 60;
+    
+    const exposureTime = parseFloat(params.exposure_time) || 3.5;
+    const bottomExposure = parseFloat(params.bottom_exposure) || 35;
     const bottomLayers = parseInt(params.bottom_layers) || 5;
-    const liftTime = parseFloat(params.lift_time) || 5;
+    
+    const liftDist = parseFloat(params.lift_distance) || 5;
+    const liftSpeed = parseFloat(params.lift_speed) || 80;
+    const retractSpeed = parseFloat(params.retract_speed) || 210;
+    const restTime = parseFloat(params.rest_time) || 0.5;
+    
+    const liftTime = (liftDist / liftSpeed) * 60;
+    const retractTime = (liftDist / retractSpeed) * 60;
+    const moveTime = liftTime + retractTime + restTime;
     
     const actualBottomLayers = Math.min(bottomLayers, layers);
-    const bottomTime = actualBottomLayers * (bottomExposure + liftTime);
-    const normalTime = Math.max(0, layers - actualBottomLayers) * (normalExposure + liftTime);
+    const normalLayers = Math.max(0, layers - actualBottomLayers);
+    
+    const bottomTime = actualBottomLayers * (bottomExposure + moveTime);
+    const normalTime = normalLayers * (exposureTime + moveTime);
     const timeMin = (bottomTime + normalTime) / 60;
     
-    const supportFactor = parseFloat(params.support_factor) || 1.10;
-    const mlResin = volumeCm3 * supportFactor;
+    const mlResin = volumeCm3;
     
     return {
         ok: true, technology: 'SLA',
@@ -189,6 +199,6 @@ function cleanup(stlPath) {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Slicer Server v4.0.0 running on port ${PORT}`);
-    console.log(`Features: FDM (PrusaSlicer) + SLA (pure JS parser)`);
+    console.log(`Slicer Server v4.1.0 running on port ${PORT}`);
+    console.log(`Features: FDM (PrusaSlicer) + SLA (calibrated formula)`);
 });
