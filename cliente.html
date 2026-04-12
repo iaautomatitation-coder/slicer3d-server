@@ -13,492 +13,96 @@
             min-height: 100vh;
             color: #fff;
         }
-        
-        .app-container {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            min-height: 100vh;
-            gap: 0;
-        }
-        
-        /* Left Panel - 3D Preview */
-        .preview-panel {
-            background: #0a0a12;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-        .preview-header {
-            padding: 20px 30px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .logo {
-            font-size: 1.4rem;
-            font-weight: 700;
-            background: linear-gradient(90deg, #00d4ff, #00ff88);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .preview-area {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        #preview3d {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-        .upload-prompt {
-            text-align: center;
-            z-index: 10;
-        }
+        .app-container { display: grid; grid-template-columns: 1fr 400px; min-height: 100vh; gap: 0; }
+        .preview-panel { background: #0a0a12; display: flex; flex-direction: column; position: relative; }
+        .preview-header { padding: 20px 30px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .logo { font-size: 1.4rem; font-weight: 700; background: linear-gradient(90deg, #00d4ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .preview-area { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+        #preview3d { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+        .upload-prompt { text-align: center; z-index: 10; }
         .upload-prompt.hidden { display: none; }
-        .upload-icon-big {
-            width: 120px;
-            height: 120px;
-            border: 3px dashed rgba(0,212,255,0.3);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 48px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .upload-icon-big:hover {
-            border-color: #00d4ff;
-            background: rgba(0,212,255,0.05);
-            transform: scale(1.05);
-        }
+        .upload-icon-big { width: 120px; height: 120px; border: 3px dashed rgba(0,212,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 48px; cursor: pointer; transition: all 0.3s; }
+        .upload-icon-big:hover { border-color: #00d4ff; background: rgba(0,212,255,0.05); transform: scale(1.05); }
         .upload-prompt h2 { font-size: 1.2rem; color: #888; font-weight: 400; }
-        .preview-controls {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            z-index: 20;
-        }
+        .preview-controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 20; }
         .preview-controls.hidden { display: none; }
-        .preview-btn {
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+        .preview-btn { padding: 10px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #fff; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
         .preview-btn:hover { background: rgba(255,255,255,0.2); }
-        .file-info {
-            position: absolute;
-            top: 20px;
-            left: 30px;
-            background: rgba(0,0,0,0.6);
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            z-index: 20;
-        }
+        .file-info { position: absolute; top: 20px; left: 30px; background: rgba(0,0,0,0.6); padding: 10px 16px; border-radius: 8px; font-size: 0.85rem; z-index: 20; }
         .file-info.hidden { display: none; }
         .file-name { color: #00d4ff; font-weight: 600; }
-
-        /* Right Panel - Options */
-        .options-panel {
-            background: rgba(255,255,255,0.02);
-            border-left: 1px solid rgba(255,255,255,0.05);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-        .options-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .options-header h2 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #fff;
-        }
-        .options-content {
-            flex: 1;
-            padding: 20px 24px;
-            overflow-y: auto;
-        }
-        
-        /* Sections */
-        .section {
-            margin-bottom: 24px;
-        }
-        .section-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #666;
-            margin-bottom: 12px;
-        }
-        
-        /* Technology Toggle */
-        .tech-toggle {
-            display: flex;
-            background: rgba(0,0,0,0.3);
-            border-radius: 12px;
-            padding: 4px;
-            gap: 4px;
-        }
-        .tech-option {
-            flex: 1;
-            padding: 14px 16px;
-            border-radius: 10px;
-            border: none;
-            background: transparent;
-            color: #888;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-        .tech-option:hover {
-            color: #fff;
-        }
-        .tech-option.active {
-            background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(0,255,136,0.2));
-            color: #fff;
-        }
-        .tech-option.active.fdm {
-            background: linear-gradient(135deg, rgba(255,136,0,0.2), rgba(255,200,0,0.2));
-        }
-        .tech-option.active.sla {
-            background: linear-gradient(135deg, rgba(138,43,226,0.2), rgba(0,191,255,0.2));
-        }
+        .options-panel { background: rgba(255,255,255,0.02); border-left: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; overflow-y: auto; }
+        .options-header { padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .options-header h2 { font-size: 1rem; font-weight: 600; color: #fff; }
+        .options-content { flex: 1; padding: 20px 24px; overflow-y: auto; }
+        .section { margin-bottom: 24px; }
+        .section-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 12px; }
+        .tech-toggle { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; gap: 4px; }
+        .tech-option { flex: 1; padding: 14px 16px; border-radius: 10px; border: none; background: transparent; color: #888; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .tech-option:hover { color: #fff; }
+        .tech-option.active { background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(0,255,136,0.2)); color: #fff; }
+        .tech-option.active.fdm { background: linear-gradient(135deg, rgba(255,136,0,0.2), rgba(255,200,0,0.2)); }
+        .tech-option.active.sla { background: linear-gradient(135deg, rgba(138,43,226,0.2), rgba(0,191,255,0.2)); }
         .tech-icon { font-size: 1.5rem; }
         .tech-label { font-size: 0.75rem; opacity: 0.7; }
-        
-        /* Material Select */
-        .material-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .material-option {
-            padding: 14px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-        }
-        .material-option:hover {
-            background: rgba(255,255,255,0.06);
-            border-color: rgba(255,255,255,0.15);
-        }
-        .material-option.selected {
-            background: rgba(0,212,255,0.1);
-            border-color: #00d4ff;
-        }
-        .material-option.selected.sla {
-            background: rgba(138,43,226,0.1);
-            border-color: #8a2be2;
-        }
+        .material-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .material-option { padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .material-option:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); }
+        .material-option.selected { background: rgba(0,212,255,0.1); border-color: #00d4ff; }
+        .material-option.selected.sla { background: rgba(138,43,226,0.1); border-color: #8a2be2; }
         .material-name { font-size: 0.9rem; font-weight: 500; }
-        
-        /* Color Select */
-        .color-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .color-option {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid rgba(255,255,255,0.1);
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-        .color-option:hover {
-            transform: scale(1.15);
-            border-color: rgba(255,255,255,0.3);
-        }
-        .color-option.selected {
-            border-color: #00d4ff;
-            box-shadow: 0 0 0 2px rgba(0,212,255,0.3);
-        }
-        .color-name {
-            font-size: 0.75rem;
-            color: #666;
-            margin-top: 10px;
-        }
-        
-        /* Quantity */
-        .quantity-selector {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            justify-content: center;
-        }
-        .qty-btn {
-            width: 44px;
-            height: 44px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 10px;
-            color: #fff;
-            font-size: 1.4rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .qty-btn:hover {
-            background: rgba(0,212,255,0.15);
-            border-color: #00d4ff;
-        }
-        .quantity-selector input {
-            width: 70px;
-            padding: 12px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 10px;
-            color: #fff;
-            font-size: 1.2rem;
-            text-align: center;
-            font-weight: 600;
-        }
-        .quantity-selector input:focus {
-            outline: none;
-            border-color: #00d4ff;
-        }
-        
-        /* Special Requests */
-        .special-requests {
-            width: 100%;
-            min-height: 80px;
-            padding: 14px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: #fff;
-            font-size: 0.9rem;
-            font-family: inherit;
-            resize: vertical;
-            line-height: 1.5;
-        }
-        .special-requests::placeholder {
-            color: #555;
-        }
-        .special-requests:focus {
-            outline: none;
-            border-color: #00d4ff;
-        }
-        .section-hint {
-            font-size: 0.75rem;
-            color: #555;
-            margin-top: 8px;
-        }
-        
-        /* Quote Button */
-        .quote-section {
-            padding: 20px 24px;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            background: rgba(0,0,0,0.2);
-        }
-        .btn-quote {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(90deg, #00d4ff, #00ff88);
-            border: none;
-            border-radius: 12px;
-            color: #000;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .btn-quote.sla {
-            background: linear-gradient(90deg, #8a2be2, #00bfff);
-        }
-        .btn-quote:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 20px rgba(0,212,255,0.4);
-        }
-        .btn-quote:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        /* Result Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-        }
-        .modal-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        .modal {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border-radius: 20px;
-            padding: 32px;
-            width: 90%;
-            max-width: 440px;
-            border: 1px solid rgba(255,255,255,0.1);
-            transform: scale(0.9);
-            transition: all 0.3s;
-        }
-        .modal-overlay.show .modal {
-            transform: scale(1);
-        }
-        .modal-header {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-        .modal-header h2 {
-            font-size: 1.3rem;
-            margin-bottom: 8px;
-        }
-        .modal-header p {
-            color: #888;
-            font-size: 0.9rem;
-        }
-        .tech-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .tech-badge.fdm {
-            background: rgba(255,136,0,0.2);
-            color: #ff8800;
-        }
-        .tech-badge.sla {
-            background: rgba(138,43,226,0.2);
-            color: #aa66ff;
-        }
-        .quote-details {
-            background: rgba(0,0,0,0.2);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .quote-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
+        .color-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .color-option { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.1); transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .color-option:hover { transform: scale(1.15); border-color: rgba(255,255,255,0.3); }
+        .color-option.selected { border-color: #00d4ff; box-shadow: 0 0 0 2px rgba(0,212,255,0.3); }
+        .color-name { font-size: 0.75rem; color: #666; margin-top: 10px; }
+        .quantity-selector { display: flex; align-items: center; gap: 12px; justify-content: center; }
+        .qty-btn { width: 44px; height: 44px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #fff; font-size: 1.4rem; cursor: pointer; transition: all 0.2s; }
+        .qty-btn:hover { background: rgba(0,212,255,0.15); border-color: #00d4ff; }
+        .quantity-selector input { width: 70px; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #fff; font-size: 1.2rem; text-align: center; font-weight: 600; }
+        .quantity-selector input:focus { outline: none; border-color: #00d4ff; }
+        .special-requests { width: 100%; min-height: 80px; padding: 14px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; font-size: 0.9rem; font-family: inherit; resize: vertical; line-height: 1.5; }
+        .special-requests::placeholder { color: #555; }
+        .special-requests:focus { outline: none; border-color: #00d4ff; }
+        .section-hint { font-size: 0.75rem; color: #555; margin-top: 8px; }
+        .quote-section { padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2); }
+        .btn-quote { width: 100%; padding: 16px; background: linear-gradient(90deg, #00d4ff, #00ff88); border: none; border-radius: 12px; color: #000; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .btn-quote.sla { background: linear-gradient(90deg, #8a2be2, #00bfff); }
+        .btn-quote:hover { transform: scale(1.02); box-shadow: 0 4px 20px rgba(0,212,255,0.4); }
+        .btn-quote:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal { background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 20px; padding: 32px; width: 90%; max-width: 440px; border: 1px solid rgba(255,255,255,0.1); transform: scale(0.9); transition: all 0.3s; }
+        .modal-overlay.show .modal { transform: scale(1); }
+        .modal-header { text-align: center; margin-bottom: 24px; }
+        .modal-header h2 { font-size: 1.3rem; margin-bottom: 8px; }
+        .modal-header p { color: #888; font-size: 0.9rem; }
+        .tech-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-bottom: 8px; }
+        .tech-badge.fdm { background: rgba(255,136,0,0.2); color: #ff8800; }
+        .tech-badge.sla { background: rgba(138,43,226,0.2); color: #aa66ff; }
+        .quote-details { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .quote-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .quote-row:last-child { border: none; }
-        .quote-row.total {
-            border-top: 2px solid rgba(0,255,136,0.3);
-            margin-top: 10px;
-            padding-top: 16px;
-        }
+        .quote-row.total { border-top: 2px solid rgba(0,255,136,0.3); margin-top: 10px; padding-top: 16px; }
         .quote-label { color: #888; }
         .quote-value { font-weight: 600; }
-        .quote-value.total {
-            font-size: 1.4rem;
-            color: #00ff88;
-        }
-        .btn-close {
-            width: 100%;
-            padding: 14px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
-            color: #fff;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-close:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        
-        /* Loading */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-        }
-        .loading-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(0,212,255,0.2);
-            border-top-color: #00d4ff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        .spinner.sla {
-            border-color: rgba(138,43,226,0.2);
-            border-top-color: #8a2be2;
-        }
+        .quote-value.total { font-size: 1.4rem; color: #00ff88; }
+        .btn-close { width: 100%; padding: 14px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: #fff; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; }
+        .btn-close:hover { background: rgba(255,255,255,0.2); }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .loading-overlay.show { opacity: 1; visibility: visible; }
+        .spinner { width: 50px; height: 50px; border: 3px solid rgba(0,212,255,0.2); border-top-color: #00d4ff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        .spinner.sla { border-color: rgba(138,43,226,0.2); border-top-color: #8a2be2; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .loading-text { color: #888; font-size: 0.95rem; }
-        
         input[type="file"] { display: none; }
-        
-        /* Responsive */
-        @media (max-width: 900px) {
-            .app-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: 300px 1fr;
-            }
-            .options-panel {
-                border-left: none;
-                border-top: 1px solid rgba(255,255,255,0.05);
-            }
-        }
+        @media (max-width: 900px) { .app-container { grid-template-columns: 1fr; grid-template-rows: 300px 1fr; } .options-panel { border-left: none; border-top: 1px solid rgba(255,255,255,0.05); } }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- Left: 3D Preview -->
         <div class="preview-panel">
-            <div class="preview-header">
-                <div class="logo">🖨️ PrintLab 3D</div>
-            </div>
+            <div class="preview-header"><div class="logo">🖨️ PrintLab 3D</div></div>
             <div class="preview-area" id="previewArea" onclick="triggerUpload()">
                 <div id="preview3d"></div>
                 <div class="upload-prompt" id="uploadPrompt">
@@ -506,445 +110,176 @@
                     <h2>Arrastra o haz clic para subir tu archivo STL</h2>
                 </div>
             </div>
-            <div class="file-info hidden" id="fileInfo">
-                <span class="file-name" id="fileName">archivo.stl</span>
-            </div>
-            <div class="preview-controls hidden" id="previewControls">
-                <button class="preview-btn" onclick="triggerUpload()">📁 Cambiar archivo</button>
-            </div>
+            <div class="file-info hidden" id="fileInfo"><span class="file-name" id="fileName">archivo.stl</span></div>
+            <div class="preview-controls hidden" id="previewControls"><button class="preview-btn" onclick="triggerUpload()">📁 Cambiar archivo</button></div>
         </div>
-        
-        <!-- Right: Options -->
         <div class="options-panel">
-            <div class="options-header">
-                <h2>Configura tu pieza</h2>
-            </div>
+            <div class="options-header"><h2>Configura tu pieza</h2></div>
             <div class="options-content">
-                <!-- Technology -->
                 <div class="section">
                     <div class="section-title">Tecnología</div>
                     <div class="tech-toggle">
-                        <button class="tech-option fdm active" onclick="setTechnology('FDM')">
-                            <span class="tech-icon">🧵</span>
-                            <span>FDM</span>
-                            <span class="tech-label">Filamento</span>
-                        </button>
-                        <button class="tech-option sla" onclick="setTechnology('SLA')">
-                            <span class="tech-icon">💎</span>
-                            <span>SLA</span>
-                            <span class="tech-label">Resina</span>
-                        </button>
+                        <button class="tech-option fdm active" onclick="setTechnology('FDM')"><span class="tech-icon">🧵</span><span>FDM</span><span class="tech-label">Filamento</span></button>
+                        <button class="tech-option sla" onclick="setTechnology('SLA')"><span class="tech-icon">💎</span><span>SLA</span><span class="tech-label">Resina</span></button>
                     </div>
                 </div>
-                
-                <!-- Material -->
-                <div class="section">
-                    <div class="section-title">Material</div>
-                    <div class="material-grid" id="materialGrid"></div>
-                </div>
-                
-                <!-- Color -->
-                <div class="section">
-                    <div class="section-title">Color</div>
-                    <div class="color-grid" id="colorGrid"></div>
-                    <div class="color-name" id="colorName">Blanco</div>
-                </div>
-                
-                <!-- Quantity -->
-                <div class="section">
-                    <div class="section-title">Cantidad</div>
-                    <div class="quantity-selector">
-                        <button class="qty-btn" onclick="changeQty(-1)">−</button>
-                        <input type="number" id="quantity" value="1" min="1" max="100" onchange="validateQty()">
-                        <button class="qty-btn" onclick="changeQty(1)">+</button>
-                    </div>
-                </div>
-                
-                <!-- Special Requests -->
-                <div class="section">
-                    <div class="section-title">Solicitudes Especiales (opcional)</div>
-                    <textarea class="special-requests" id="specialRequests" placeholder="Ej: Es un llavero, necesito acabado liso, etc."></textarea>
-                    <p class="section-hint">El proveedor ajustará la cotización final</p>
-                </div>
+                <div class="section"><div class="section-title">Material</div><div class="material-grid" id="materialGrid"></div></div>
+                <div class="section"><div class="section-title">Color</div><div class="color-grid" id="colorGrid"></div><div class="color-name" id="colorName">Blanco</div></div>
+                <div class="section"><div class="section-title">Cantidad</div><div class="quantity-selector"><button class="qty-btn" onclick="changeQty(-1)">−</button><input type="number" id="quantity" value="1" min="1" max="100" onchange="validateQty()"><button class="qty-btn" onclick="changeQty(1)">+</button></div></div>
+                <div class="section"><div class="section-title">Solicitudes Especiales (opcional)</div><textarea class="special-requests" id="specialRequests" placeholder="Ej: Es un llavero, necesito acabado liso, etc."></textarea><p class="section-hint">El proveedor ajustará la cotización final</p></div>
             </div>
-            
-            <!-- Quote Button -->
-            <div class="quote-section">
-                <button class="btn-quote" id="btnQuote" onclick="requestQuote()" disabled>
-                    Obtener Cotización
-                </button>
-            </div>
+            <div class="quote-section"><button class="btn-quote" id="btnQuote" onclick="requestQuote()" disabled>Obtener Cotización</button></div>
         </div>
     </div>
-    
     <input type="file" id="fileInput" accept=".stl">
-    
-    <!-- Loading -->
-    <div class="loading-overlay" id="loading">
-        <div class="spinner" id="loadingSpinner"></div>
-        <div class="loading-text" id="loadingText">Calculando tu cotización...</div>
-    </div>
-    
-    <!-- Result Modal -->
+    <div class="loading-overlay" id="loading"><div class="spinner" id="loadingSpinner"></div><div class="loading-text" id="loadingText">Calculando tu cotización...</div></div>
     <div class="modal-overlay" id="resultModal">
         <div class="modal">
-            <div class="modal-header">
-                <div class="tech-badge" id="qTechBadge">FDM</div>
-                <h2>📋 Tu Cotización</h2>
-                <p id="quoteFile">archivo.stl</p>
-            </div>
+            <div class="modal-header"><div class="tech-badge" id="qTechBadge">FDM</div><h2>📋 Tu Cotización</h2><p id="quoteFile">archivo.stl</p></div>
             <div class="quote-details">
-                <div class="quote-row">
-                    <span class="quote-label">Material</span>
-                    <span class="quote-value" id="qMaterial">PLA</span>
-                </div>
-                <div class="quote-row">
-                    <span class="quote-label">Color</span>
-                    <span class="quote-value" id="qColor">Blanco</span>
-                </div>
-                <div class="quote-row">
-                    <span class="quote-label">Cantidad</span>
-                    <span class="quote-value" id="qQuantity">1 pieza</span>
-                </div>
-                <div class="quote-row">
-                    <span class="quote-label">Tiempo por pieza</span>
-                    <span class="quote-value" id="qTime">--</span>
-                </div>
-                <div class="quote-row" id="rowConsumo">
-                    <span class="quote-label" id="qConsumoLabel">Material</span>
-                    <span class="quote-value" id="qConsumo">--</span>
-                </div>
-                <div class="quote-row" id="rowSolicitudes" style="display:none;">
-                    <span class="quote-label">Solicitudes</span>
-                    <span class="quote-value" id="qSolicitudes" style="font-size:0.8rem; color:#888;">--</span>
-                </div>
-                <div class="quote-row">
-                    <span class="quote-label">Impresión (x<span id="qQtyLabel">1</span>)</span>
-                    <span class="quote-value" id="qPrint">$0.00</span>
-                </div>
-                <div class="quote-row">
-                    <span class="quote-label">Subtotal</span>
-                    <span class="quote-value" id="qSubtotal">$0.00</span>
-                </div>
-                <div class="quote-row">
-                    <span class="quote-label">IVA (16%)</span>
-                    <span class="quote-value" id="qIva">$0.00</span>
-                </div>
-                <div class="quote-row total">
-                    <span class="quote-label" style="font-size:1.1rem;">Total</span>
-                    <span class="quote-value total" id="qTotal">$0.00 MXN</span>
-                </div>
+                <div class="quote-row"><span class="quote-label">Material</span><span class="quote-value" id="qMaterial">PLA</span></div>
+                <div class="quote-row"><span class="quote-label">Color</span><span class="quote-value" id="qColor">Blanco</span></div>
+                <div class="quote-row"><span class="quote-label">Cantidad</span><span class="quote-value" id="qQuantity">1 pieza</span></div>
+                <div class="quote-row"><span class="quote-label">Tiempo por pieza</span><span class="quote-value" id="qTime">--</span></div>
+                <div class="quote-row" id="rowConsumo"><span class="quote-label" id="qConsumoLabel">Material</span><span class="quote-value" id="qConsumo">--</span></div>
+                <div class="quote-row" id="rowSolicitudes" style="display:none;"><span class="quote-label">Solicitudes</span><span class="quote-value" id="qSolicitudes" style="font-size:0.8rem; color:#888;">--</span></div>
+                <div class="quote-row"><span class="quote-label">Impresión (x<span id="qQtyLabel">1</span>)</span><span class="quote-value" id="qPrint">$0.00</span></div>
+                <div class="quote-row"><span class="quote-label">Subtotal</span><span class="quote-value" id="qSubtotal">$0.00</span></div>
+                <div class="quote-row"><span class="quote-label">IVA (16%)</span><span class="quote-value" id="qIva">$0.00</span></div>
+                <div class="quote-row total"><span class="quote-label" style="font-size:1.1rem;">Total</span><span class="quote-value total" id="qTotal">$0.00 MXN</span></div>
                 <p id="qNote" style="display:none; font-size:0.8rem; color:#ffa500; margin-top:12px; text-align:center;">⚠️ Cotización preliminar. El proveedor ajustará según tus solicitudes.</p>
             </div>
             <button class="btn-close" onclick="closeModal()">Cerrar</button>
         </div>
     </div>
-
     <script>
         const API = 'https://slicer3d-server-production.up.railway.app';
-        let currentFile = null;
-        let scene, camera, renderer, mesh;
-        let selectedTechnology = 'FDM';
-        let selectedMaterial = null;
+        let currentFile = null, scene, camera, renderer, mesh;
+        let selectedTechnology = 'FDM', selectedMaterial = null;
         let selectedColor = { hex: '#ffffff', name: 'Blanco' };
-        let quantity = 1;
         
-        // Config loaded from admin
         let CONFIG = {
-            fdm: {
-                materials: [
-                    { id: 'pla', name: 'PLA', price: 400, temp: 210 },
-                    { id: 'petg', name: 'PETG', price: 500, temp: 240 },
-                    { id: 'abs', name: 'ABS', price: 450, temp: 250 },
-                    { id: 'tpu', name: 'TPU', price: 700, temp: 230 }
-                ],
-                costPerHour: 60,
-                margin: 40
-            },
-            sla: {
-                materials: [
-                    { id: 'standard', name: 'Estándar', price: 800, exposure: 8 },
-                    { id: 'abs_like', name: 'ABS-Like', price: 1000, exposure: 10 },
-                    { id: 'flexible', name: 'Flexible', price: 1200, exposure: 12 },
-                    { id: 'castable', name: 'Castable', price: 1500, exposure: 15 }
-                ],
-                costPerHour: 80,
-                margin: 50
-            },
-            colors: [
-                { hex: '#ffffff', name: 'Blanco' },
-                { hex: '#222222', name: 'Negro' },
-                { hex: '#e53935', name: 'Rojo' },
-                { hex: '#1e88e5', name: 'Azul' },
-                { hex: '#43a047', name: 'Verde' },
-                { hex: '#fdd835', name: 'Amarillo' },
-                { hex: '#fb8c00', name: 'Naranja' },
-                { hex: '#8e24aa', name: 'Morado' },
-                { hex: '#00bcd4', name: 'Cyan' },
-                { hex: '#e91e63', name: 'Rosa' }
-            ],
+            fdm: { materials: [{ id: 'pla', name: 'PLA', price: 400, temp: 210 },{ id: 'petg', name: 'PETG', price: 500, temp: 240 },{ id: 'abs', name: 'ABS', price: 450, temp: 250 },{ id: 'tpu', name: 'TPU', price: 700, temp: 230 }], costPerHour: 60, margin: 40 },
+            sla: { name: 'Elegoo Mars 3 Pro', layerHeight: 0.05, exposureTime: 3.5, bottomExposure: 35, bottomLayers: 5, liftDistance: 5, liftSpeed: 80, retractSpeed: 210, restTime: 0.5, resins: [{ id: 'standard', name: 'Estándar', price: 800 },{ id: 'abs_like', name: 'ABS-Like', price: 1000 },{ id: 'flexible', name: 'Flexible', price: 1200 },{ id: 'castable', name: 'Castable', price: 1500 }], costPerHour: 80, margin: 50 },
+            colors: [{ hex: '#ffffff', name: 'Blanco' },{ hex: '#222222', name: 'Negro' },{ hex: '#e53935', name: 'Rojo' },{ hex: '#1e88e5', name: 'Azul' },{ hex: '#43a047', name: 'Verde' },{ hex: '#fdd835', name: 'Amarillo' },{ hex: '#fb8c00', name: 'Naranja' },{ hex: '#8e24aa', name: 'Morado' }],
             iva: 16
         };
         
-        // Load admin config if exists
         function loadAdminConfig() {
             const saved = localStorage.getItem('cotizador3d_admin');
-            if (saved) {
-                try {
-                    const admin = JSON.parse(saved);
-                    if (admin.fdm) CONFIG.fdm = { ...CONFIG.fdm, ...admin.fdm };
-                    if (admin.sla) CONFIG.sla = { ...CONFIG.sla, ...admin.sla };
-                    if (admin.colors) CONFIG.colors = admin.colors;
-                    if (admin.iva !== undefined) CONFIG.iva = admin.iva;
-                } catch(e) { console.log('Error loading admin config'); }
-            }
+            if (saved) { try { const admin = JSON.parse(saved); if (admin.fdm) CONFIG.fdm = { ...CONFIG.fdm, ...admin.fdm }; if (admin.sla) CONFIG.sla = { ...CONFIG.sla, ...admin.sla }; if (admin.colors) CONFIG.colors = admin.colors; if (admin.iva !== undefined) CONFIG.iva = admin.iva; } catch(e) {} }
         }
         
-        function changeQty(delta) {
-            const input = document.getElementById('quantity');
-            let val = parseInt(input.value) || 1;
-            val = Math.max(1, Math.min(100, val + delta));
-            input.value = val;
-            quantity = val;
-        }
+        function changeQty(delta) { const input = document.getElementById('quantity'); let val = Math.max(1, Math.min(100, (parseInt(input.value)||1) + delta)); input.value = val; }
+        function validateQty() { const input = document.getElementById('quantity'); input.value = Math.max(1, Math.min(100, parseInt(input.value)||1)); }
         
-        function validateQty() {
-            const input = document.getElementById('quantity');
-            let val = parseInt(input.value) || 1;
-            val = Math.max(1, Math.min(100, val));
-            input.value = val;
-            quantity = val;
-        }
-        
-        // Init
-        document.addEventListener('DOMContentLoaded', function() {
-            loadAdminConfig();
-            renderMaterials();
-            renderColors();
-            setupDragDrop();
-        });
+        document.addEventListener('DOMContentLoaded', function() { loadAdminConfig(); renderMaterials(); renderColors(); setupDragDrop(); });
         
         function setTechnology(tech) {
             selectedTechnology = tech;
-            document.querySelectorAll('.tech-option').forEach(el => {
-                el.classList.remove('active');
-            });
+            document.querySelectorAll('.tech-option').forEach(el => el.classList.remove('active'));
             document.querySelector(`.tech-option.${tech.toLowerCase()}`).classList.add('active');
-            
-            // Update button style
-            const btn = document.getElementById('btnQuote');
-            btn.classList.toggle('sla', tech === 'SLA');
-            
-            // Update spinner style
+            document.getElementById('btnQuote').classList.toggle('sla', tech === 'SLA');
             document.getElementById('loadingSpinner').classList.toggle('sla', tech === 'SLA');
-            
             renderMaterials();
-            
-            // Update 3D preview color
-            if (mesh && selectedColor) {
-                mesh.material.color.set(selectedColor.hex);
-            }
         }
         
         function renderMaterials() {
             const grid = document.getElementById('materialGrid');
-            const materials = selectedTechnology === 'FDM' ? CONFIG.fdm.materials : CONFIG.sla.materials;
-            
-            grid.innerHTML = materials.map((m, idx) => `
-                <div class="material-option ${idx === 0 ? 'selected' : ''} ${selectedTechnology === 'SLA' ? 'sla' : ''}" 
-                     data-id="${m.id}" onclick="selectMaterial('${m.id}')">
-                    <div class="material-name">${m.name}</div>
-                </div>
-            `).join('');
+            const materials = selectedTechnology === 'FDM' ? CONFIG.fdm.materials : (CONFIG.sla.resins || []);
+            grid.innerHTML = materials.map((m, idx) => `<div class="material-option ${idx === 0 ? 'selected' : ''} ${selectedTechnology === 'SLA' ? 'sla' : ''}" data-id="${m.id}" onclick="selectMaterial('${m.id}')"><div class="material-name">${m.name}</div></div>`).join('');
             selectedMaterial = materials[0];
         }
         
         function selectMaterial(id) {
-            const materials = selectedTechnology === 'FDM' ? CONFIG.fdm.materials : CONFIG.sla.materials;
+            const materials = selectedTechnology === 'FDM' ? CONFIG.fdm.materials : (CONFIG.sla.resins || []);
             selectedMaterial = materials.find(m => m.id === id);
-            document.querySelectorAll('.material-option').forEach(el => {
-                el.classList.toggle('selected', el.dataset.id === id);
-            });
+            document.querySelectorAll('.material-option').forEach(el => el.classList.toggle('selected', el.dataset.id === id));
         }
         
         function renderColors() {
             const grid = document.getElementById('colorGrid');
-            grid.innerHTML = CONFIG.colors.map((c, idx) => `
-                <div class="color-option ${idx === 0 ? 'selected' : ''}" 
-                     style="background:${c.hex};" 
-                     data-hex="${c.hex}" 
-                     data-name="${c.name}"
-                     onclick="selectColor('${c.hex}', '${c.name}')">
-                </div>
-            `).join('');
+            grid.innerHTML = CONFIG.colors.map((c, idx) => `<div class="color-option ${idx === 0 ? 'selected' : ''}" style="background:${c.hex};" data-hex="${c.hex}" data-name="${c.name}" onclick="selectColor('${c.hex}', '${c.name}')"></div>`).join('');
             selectedColor = CONFIG.colors[0];
             document.getElementById('colorName').textContent = selectedColor.name;
         }
         
         function selectColor(hex, name) {
             selectedColor = { hex, name };
-            document.querySelectorAll('.color-option').forEach(el => {
-                el.classList.toggle('selected', el.dataset.hex === hex);
-            });
+            document.querySelectorAll('.color-option').forEach(el => el.classList.toggle('selected', el.dataset.hex === hex));
             document.getElementById('colorName').textContent = name;
-            
-            // Update 3D preview color
-            if (mesh) {
-                mesh.material.color.set(hex);
-            }
+            if (mesh) mesh.material.color.set(hex);
         }
         
-        // File Upload
-        function triggerUpload() {
-            document.getElementById('fileInput').click();
-        }
+        function triggerUpload() { document.getElementById('fileInput').click(); }
         
         function setupDragDrop() {
-            const area = document.getElementById('previewArea');
-            const input = document.getElementById('fileInput');
-            
-            ['dragenter', 'dragover'].forEach(e => {
-                area.addEventListener(e, (ev) => { ev.preventDefault(); });
-            });
-            area.addEventListener('drop', (e) => {
-                e.preventDefault();
-                if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
-            });
-            input.addEventListener('change', (e) => {
-                if (e.target.files[0]) handleFile(e.target.files[0]);
-            });
+            const area = document.getElementById('previewArea'), input = document.getElementById('fileInput');
+            ['dragenter', 'dragover'].forEach(e => area.addEventListener(e, ev => ev.preventDefault()));
+            area.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+            input.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
         }
         
         function handleFile(file) {
-            if (!file.name.toLowerCase().endsWith('.stl')) {
-                alert('Solo se aceptan archivos STL');
-                return;
-            }
+            if (!file.name.toLowerCase().endsWith('.stl')) { alert('Solo se aceptan archivos STL'); return; }
             currentFile = file;
             document.getElementById('uploadPrompt').classList.add('hidden');
             document.getElementById('fileInfo').classList.remove('hidden');
             document.getElementById('previewControls').classList.remove('hidden');
             document.getElementById('fileName').textContent = file.name;
             document.getElementById('btnQuote').disabled = false;
-            
             loadSTLPreview(file);
         }
         
         function loadSTLPreview(file) {
             const container = document.getElementById('preview3d');
             container.innerHTML = '';
-            
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    scene = new THREE.Scene();
-                    scene.background = new THREE.Color(0x0a0a12);
-                    
+                    scene = new THREE.Scene(); scene.background = new THREE.Color(0x0a0a12);
                     camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 2000);
-                    
-                    renderer = new THREE.WebGLRenderer({ antialias: true });
-                    renderer.setSize(container.clientWidth, container.clientHeight);
+                    renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setSize(container.clientWidth, container.clientHeight);
                     container.appendChild(renderer.domElement);
-                    
-                    const geometry = parseSTL(e.target.result);
-                    geometry.computeVertexNormals();
-                    geometry.center();
-                    
-                    const material = new THREE.MeshPhongMaterial({ 
-                        color: selectedColor.hex,
-                        specular: 0x444444,
-                        shininess: 30
-                    });
-                    
-                    mesh = new THREE.Mesh(geometry, material);
-                    scene.add(mesh);
-                    
-                    const box = new THREE.Box3().setFromObject(mesh);
-                    const size = box.getSize(new THREE.Vector3());
-                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const geometry = parseSTL(e.target.result); geometry.computeVertexNormals(); geometry.center();
+                    const material = new THREE.MeshPhongMaterial({ color: selectedColor.hex, specular: 0x444444, shininess: 30 });
+                    mesh = new THREE.Mesh(geometry, material); scene.add(mesh);
+                    const box = new THREE.Box3().setFromObject(mesh), size = box.getSize(new THREE.Vector3()), maxDim = Math.max(size.x, size.y, size.z);
                     camera.position.z = maxDim * 2;
-                    
-                    const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
-                    scene.add(ambientLight);
-                    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-                    directionalLight.position.set(1, 1, 1);
-                    scene.add(directionalLight);
-                    const backLight = new THREE.DirectionalLight(0xffffff, 0.5);
-                    backLight.position.set(-1, -1, -1);
-                    scene.add(backLight);
-                    
-                    // Mouse controls
-                    let isDragging = false;
-                    let prevMouse = { x: 0, y: 0 };
-                    
-                    renderer.domElement.addEventListener('mousedown', (e) => { isDragging = true; e.stopPropagation(); });
+                    scene.add(new THREE.AmbientLight(0x404040, 0.5));
+                    const dl = new THREE.DirectionalLight(0xffffff, 1); dl.position.set(1, 1, 1); scene.add(dl);
+                    const bl = new THREE.DirectionalLight(0xffffff, 0.5); bl.position.set(-1, -1, -1); scene.add(bl);
+                    let isDragging = false, prevMouse = { x: 0, y: 0 };
+                    renderer.domElement.addEventListener('mousedown', e => { isDragging = true; e.stopPropagation(); });
                     renderer.domElement.addEventListener('mouseup', () => isDragging = false);
-                    renderer.domElement.addEventListener('mousemove', (e) => {
-                        if (isDragging) {
-                            mesh.rotation.y += (e.offsetX - prevMouse.x) * 0.01;
-                            mesh.rotation.x += (e.offsetY - prevMouse.y) * 0.01;
-                        }
-                        prevMouse = { x: e.offsetX, y: e.offsetY };
-                    });
-                    renderer.domElement.addEventListener('wheel', (e) => {
-                        e.preventDefault();
-                        camera.position.z = Math.max(maxDim * 0.5, Math.min(maxDim * 5, camera.position.z + e.deltaY * 0.1));
-                    });
-                    
-                    function animate() {
-                        requestAnimationFrame(animate);
-                        renderer.render(scene, camera);
-                    }
-                    animate();
-                    
-                } catch(err) {
-                    console.error('Preview error:', err);
-                }
+                    renderer.domElement.addEventListener('mousemove', e => { if (isDragging) { mesh.rotation.y += (e.offsetX - prevMouse.x) * 0.01; mesh.rotation.x += (e.offsetY - prevMouse.y) * 0.01; } prevMouse = { x: e.offsetX, y: e.offsetY }; });
+                    renderer.domElement.addEventListener('wheel', e => { e.preventDefault(); camera.position.z = Math.max(maxDim * 0.5, Math.min(maxDim * 5, camera.position.z + e.deltaY * 0.1)); });
+                    (function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); })();
+                } catch(err) { console.error('Preview error:', err); }
             };
             reader.readAsArrayBuffer(file);
         }
         
         function parseSTL(buffer) {
-            const geometry = new THREE.BufferGeometry();
-            const vertices = [];
-            
+            const geometry = new THREE.BufferGeometry(), vertices = [];
             const text = new TextDecoder().decode(buffer.slice(0, 80));
             if (text.startsWith('solid') && !text.includes('\0')) {
                 const fullText = new TextDecoder().decode(buffer);
                 const vertexRegex = /vertex\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)/g;
-                let match;
-                while ((match = vertexRegex.exec(fullText)) !== null) {
-                    vertices.push(parseFloat(match[1]), parseFloat(match[2]), parseFloat(match[3]));
-                }
+                let match; while ((match = vertexRegex.exec(fullText)) !== null) vertices.push(parseFloat(match[1]), parseFloat(match[2]), parseFloat(match[3]));
             } else {
-                const dataView = new DataView(buffer);
-                const numTriangles = dataView.getUint32(80, true);
+                const dataView = new DataView(buffer), numTriangles = dataView.getUint32(80, true);
                 let offset = 84;
-                for (let i = 0; i < numTriangles; i++) {
-                    offset += 12;
-                    for (let j = 0; j < 3; j++) {
-                        vertices.push(
-                            dataView.getFloat32(offset, true),
-                            dataView.getFloat32(offset + 4, true),
-                            dataView.getFloat32(offset + 8, true)
-                        );
-                        offset += 12;
-                    }
-                    offset += 2;
-                }
+                for (let i = 0; i < numTriangles; i++) { offset += 12; for (let j = 0; j < 3; j++) { vertices.push(dataView.getFloat32(offset, true), dataView.getFloat32(offset + 4, true), dataView.getFloat32(offset + 8, true)); offset += 12; } offset += 2; }
             }
-            
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
             return geometry;
         }
         
-        // Quote
+        // UPDATED: Send ALL SLA parameters to server
         function requestQuote() {
             if (!currentFile) return;
-            
-            const loadingText = selectedTechnology === 'SLA' ? 
-                'Calculando volumen de resina...' : 'Procesando con PrusaSlicer...';
-            document.getElementById('loadingText').textContent = loadingText;
+            document.getElementById('loadingText').textContent = selectedTechnology === 'SLA' ? 'Calculando volumen de resina...' : 'Procesando con PrusaSlicer...';
             document.getElementById('loading').classList.add('show');
             
             const formData = new FormData();
@@ -954,23 +289,22 @@
             if (selectedTechnology === 'FDM') {
                 formData.append('temperature', selectedMaterial.temp);
             } else {
-                formData.append('exposure_time', selectedMaterial.exposure || 8);
+                // Send ALL SLA parameters from admin config
+                const sla = CONFIG.sla || {};
+                formData.append('layer_height', sla.layerHeight || 0.05);
+                formData.append('exposure_time', sla.exposureTime || 3.5);
+                formData.append('bottom_exposure', sla.bottomExposure || 35);
+                formData.append('bottom_layers', sla.bottomLayers || 5);
+                formData.append('lift_distance', sla.liftDistance || 5);
+                formData.append('lift_speed', sla.liftSpeed || 80);
+                formData.append('retract_speed', sla.retractSpeed || 210);
+                formData.append('rest_time', sla.restTime || 0.5);
             }
             
             fetch(API + '/slice', { method: 'POST', body: formData })
                 .then(r => r.json())
-                .then(data => {
-                    document.getElementById('loading').classList.remove('show');
-                    if (data.ok) {
-                        showQuoteResult(data);
-                    } else {
-                        alert('Error al procesar: ' + (data.error || 'Error desconocido'));
-                    }
-                })
-                .catch(err => {
-                    document.getElementById('loading').classList.remove('show');
-                    alert('Error de conexión');
-                });
+                .then(data => { document.getElementById('loading').classList.remove('show'); if (data.ok) showQuoteResult(data); else alert('Error: ' + (data.error || 'Error desconocido')); })
+                .catch(() => { document.getElementById('loading').classList.remove('show'); alert('Error de conexión'); });
         }
         
         function showQuoteResult(data) {
@@ -978,67 +312,43 @@
             const specialRequests = document.getElementById('specialRequests').value.trim();
             const config = selectedTechnology === 'FDM' ? CONFIG.fdm : CONFIG.sla;
             
-            // Technology badge
-            const badge = document.getElementById('qTechBadge');
-            badge.textContent = selectedTechnology;
-            badge.className = 'tech-badge ' + selectedTechnology.toLowerCase();
+            document.getElementById('qTechBadge').textContent = selectedTechnology;
+            document.getElementById('qTechBadge').className = 'tech-badge ' + selectedTechnology.toLowerCase();
             
-            // Calculate costs
             let materialCost, machineCost, consumoText, consumoLabel;
-            
             if (selectedTechnology === 'SLA') {
-                // SLA: ml de resina
-                const mlResin = data.ml_resin || 0;
-                materialCost = (mlResin / 1000) * selectedMaterial.price; // precio por litro
+                const ml = data.ml_resin || 0;
+                materialCost = (ml / 1000) * selectedMaterial.price;
                 machineCost = (data.time_min / 60) * config.costPerHour;
-                consumoText = `${mlResin.toFixed(1)} ml`;
+                consumoText = ml.toFixed(1) + ' ml';
                 consumoLabel = 'Resina';
             } else {
-                // FDM: gramos
-                const grams = data.grams || 0;
-                materialCost = (grams / 1000) * selectedMaterial.price; // precio por kg
+                const g = data.grams || 0;
+                materialCost = (g / 1000) * selectedMaterial.price;
                 machineCost = (data.time_min / 60) * config.costPerHour;
-                consumoText = `${grams.toFixed(1)} g`;
+                consumoText = g.toFixed(1) + ' g';
                 consumoLabel = 'Filamento';
             }
             
-            const printCostPerPiece = materialCost + machineCost;
-            const printCostTotal = printCostPerPiece * qty;
-            
-            // Margin
-            const margin = printCostTotal * (config.margin / 100);
-            const subtotal = printCostTotal + margin;
-            
-            // IVA
+            const printCost = (materialCost + machineCost) * qty;
+            const margin = printCost * (config.margin / 100);
+            const subtotal = printCost + margin;
             const iva = subtotal * (CONFIG.iva / 100);
             const total = subtotal + iva;
             
-            // Display
             document.getElementById('quoteFile').textContent = currentFile.name;
             document.getElementById('qMaterial').textContent = selectedMaterial.name;
             document.getElementById('qColor').innerHTML = `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${selectedColor.hex};margin-right:6px;vertical-align:middle;"></span>${selectedColor.name}`;
             document.getElementById('qQuantity').textContent = qty + (qty > 1 ? ' piezas' : ' pieza');
             document.getElementById('qQtyLabel').textContent = qty;
-            
-            // Time
-            const timeMin = data.time_min || 0;
-            document.getElementById('qTime').textContent = data.time_formatted || formatTime(timeMin);
-            
-            // Consumo (material)
+            document.getElementById('qTime').textContent = data.time_formatted || formatTime(data.time_min || 0);
             document.getElementById('qConsumoLabel').textContent = consumoLabel;
             document.getElementById('qConsumo').textContent = consumoText;
             
-            // Special requests
-            if (specialRequests) {
-                document.getElementById('rowSolicitudes').style.display = 'flex';
-                document.getElementById('qSolicitudes').textContent = specialRequests.length > 40 ? specialRequests.substring(0, 40) + '...' : specialRequests;
-                document.getElementById('qNote').style.display = 'block';
-            } else {
-                document.getElementById('rowSolicitudes').style.display = 'none';
-                document.getElementById('qNote').style.display = 'none';
-            }
+            if (specialRequests) { document.getElementById('rowSolicitudes').style.display = 'flex'; document.getElementById('qSolicitudes').textContent = specialRequests.length > 40 ? specialRequests.substring(0, 40) + '...' : specialRequests; document.getElementById('qNote').style.display = 'block'; }
+            else { document.getElementById('rowSolicitudes').style.display = 'none'; document.getElementById('qNote').style.display = 'none'; }
             
-            document.getElementById('qPrint').textContent = '$' + printCostTotal.toFixed(2);
+            document.getElementById('qPrint').textContent = '$' + printCost.toFixed(2);
             document.getElementById('qSubtotal').textContent = '$' + subtotal.toFixed(2);
             document.getElementById('qIva').textContent = '$' + iva.toFixed(2);
             document.getElementById('qTotal').textContent = '$' + total.toFixed(2) + ' MXN';
@@ -1046,15 +356,8 @@
             document.getElementById('resultModal').classList.add('show');
         }
         
-        function formatTime(minutes) {
-            const hrs = Math.floor(minutes / 60);
-            const mins = Math.round(minutes % 60);
-            return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
-        }
-        
-        function closeModal() {
-            document.getElementById('resultModal').classList.remove('show');
-        }
+        function formatTime(m) { const h = Math.floor(m / 60), min = Math.round(m % 60); return h > 0 ? h + 'h ' + min + 'm' : min + 'm'; }
+        function closeModal() { document.getElementById('resultModal').classList.remove('show'); }
     </script>
 </body>
 </html>
